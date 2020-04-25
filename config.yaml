@@ -4,6 +4,12 @@
 
 proxy:
     coll: my-coll
+    ca_name: pywb HTTPS Proxy CA
+    ca_file_cache: ./proxy-certs/pywb-ca.pem
+    recording: false
+    enable_banner: true
+    enable_content_rewrite: true
+    default_timestamp: ''
 
 collections:
     all: $all
@@ -17,6 +23,7 @@ use_js_obj_proxy: true
 enable_memento: true
 
 # Replay content in an iframe
-framed_replay: true
+framed_replay: false
 
 enable_http_proxy: true
+enable_https_proxy: true

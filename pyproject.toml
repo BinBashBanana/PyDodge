@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "pywb"
+version = "2.4.0"
+description = "ea"
+authors = ["Your Name <you@example.com>"]
+license = "GPL-3.0"
+
+[tool.poetry.dependencies]
+python = "^3.5.0"
+pyyaml = "^5.3.1"
+lxml = "^4.5.0"
+gunicorn = "^20.0.4"
+brotlipy = "^0.7.0"
+webassets = "^2.0"
+babel = "^2.8.0"
+portalocker = "^1.7.0"
+warcio = "^1.7.3"
+boto3 = "^1.12.46"
+surt = "^0.3.1"
+gevent = "^20.4.0"
+jinja2 = "^2.11.2"
+youtube-dl = "^2020.3.24"
+werkzeug = "^1.0.1"
+fakeredis = "^1.4.0"
+webencodings = "^0.5.1"
+wsgiprox = "^1.5.2"
+uwsgi = "^2.0.18"
+pysocks = "^1.7.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
