@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}URL Not Found{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="col-12">
+        <h4>{% trans %}URL Not Found{% endtrans %}</h4>
+    </div>
+    <p>
+        {% trans %}The url <b>{{ url }}</b> could not be found in this collection.{% endtrans %}
+    </p>
+    {% if wbrequest and wbrequest.env.pywb_proxy_magic and url %}
+        <p>
+            <a href="//select.{{ wbrequest and wbrequest.env.pywb_proxy_magic }}/{{ url }}">
+                Try Different Collection
+            </a>
+        </p>
+    {% endif %}
+</div>
+{% endblock %}
+

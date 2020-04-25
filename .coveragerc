@@ -1,0 +1,18 @@
+[run]
+concurrency = gevent
+source = codecov
+branch = True
+omit =
+    */test/*
+    */tests/*
+    *.html
+    *.js
+    *.css
+    pywb/__init__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    def __repr__
+    raise NotImplementedError

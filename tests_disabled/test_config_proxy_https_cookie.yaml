@@ -1,0 +1,26 @@
+collections:
+    all:
+        - ./sample_archive/cdx/iana.cdx
+        - ./sample_archive/cdx/dupes.cdx
+        - ./sample_archive/cdx/post-test.cdx
+
+    older:
+        - ./sample_archive/cdx/iana.cdx
+
+    newer:
+        - ./sample_archive/cdx/dupes.cdx
+
+archive_paths: ./sample_archive/warcs/
+
+enable_http_proxy: true
+
+proxy_options:
+    enable_https_proxy: true
+
+    cookie_resolver: true
+    use_default_coll: false
+    use_wildcard_certs: false
+
+    root_ca_file: ./tests/pywb_test_ca.pem
+    root_ca_name: pywb Test Cert
+    certs_dir: ./tests/pywb_test_certs

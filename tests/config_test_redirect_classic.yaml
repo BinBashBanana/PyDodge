@@ -1,0 +1,21 @@
+# config similar to old pywb setup
+# -redirect requests
+# -include video rewrite
+
+collections:
+    pywb:
+        index: ./sample_archive/cdx/
+        archive_paths: ./sample_archive/warcs/
+
+    live: $live
+
+enable_flash_video_rewrite: true
+
+redirect_to_exact: true
+
+enable_memento: true
+enable_prefer: true
+
+debug: true
+
+query_limit: 10

@@ -1,0 +1,63 @@
+{
+  "name": "wombat",
+  "version": "3.0.0",
+  "main": "index.js",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "@types/fs-extra": "^8.0.0",
+    "ava": "^2.3.0",
+    "chokidar": "^3.0.2",
+    "chrome-remote-interface-extra": "^1.1.1",
+    "eslint": "^6.2.2",
+    "eslint-config-prettier": "^6.1.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "fastify": "^2.7.1",
+    "fastify-favicon": "^2.0.0",
+    "fastify-static": "^2.5.0",
+    "fs-extra": "^8.1.0",
+    "just-launch-chrome": "^1.0.0",
+    "lodash-es": "^4.17.15",
+    "prettier": "^1.18.2",
+    "rollup": "^1.20.2",
+    "rollup-plugin-babel-minify": "^9.0.0",
+    "rollup-plugin-commonjs": "^10.0.2",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  },
+  "scripts": {
+    "build-prod": "rollup -c rollup.config.prod.js",
+    "build-dev": "ALL=1 rollup -c rollup.config.dev.js",
+    "build-dev-watch": "rollup --watch -c rollup.config.dev.js",
+    "build-dev-watch-proxy": "PROXY=1 rollup --watch -c rollup.config.dev.js",
+    "build-test": "rollup -c rollup.config.test.js",
+    "build-full-test": "rollup -c rollup.config.test.js && rollup -c ./internal/rollup.testPageBundle.config.js",
+    "build-test-bundle": "rollup -c ./internal/rollup.testPageBundle.config.js",
+    "format": "prettier --write src/*.js test/*.js",
+    "lint": "eslint src/*.js test/*.js",
+    "lint-fix": "eslint --fix src/*.js test/*.js",
+    "test": "ava --verbose"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "ava": {
+    "concurrency": 1,
+    "verbose": true,
+    "serial": true,
+    "files": [
+      "test/*.js",
+      "!test/assets/*.js",
+      "!test/helpers/*.js"
+    ],
+    "helpers": [
+      "test/helpers/*.js"
+    ],
+    "sources": [
+      "src/**/*"
+    ]
+  },
+  "resolutions": {
+    "*/**/graceful-fs": "~4.2.2",
+    "*/**/fs-extra": "~8.1.0"
+  },
+  "dependencies": {}
+}

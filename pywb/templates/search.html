@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<script>
+// TODO: cleanup
+window.wb_prefix = "{{ wb_prefix }}";
+</script>
+<script src="{{ static_prefix }}/search.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <h4 class="display-4">
+            Collection {{ coll }} Search Page
+        </h4>
+    </div>
+</div>
+<div class="container mt-4">
+    <form class="needs-validation" id="search-form" novalidate>
+        <div class="form-row">
+            <div class="col-12">
+                <label for="search-url" class="lead" aria-label="Search For Col">
+                    {% set coll_title = metadata.title if metadata and metadata.title else coll %}
+                    {% trans %}Search the {{ coll_title }} collection by url:{% endtrans %}
+                </label>
+                <input aria-label="url" aria-required="true" class="form-control form-control-lg" id="search-url"
+                       name="search" placeholder="Enter a URL to search for"
+                       title="Enter a URL to search for" type="search" required/>
+                <div class="invalid-feedback">
+                    Please enter a URL
+                </div>
+            </div>
+        </div>
+        <div class="form-row mt-2">
+            <div class="col-5">
+                <div class="custom-control custom-checkbox custom-control">
+                    <input type="checkbox" class="custom-control-input" id="open-results-new-window">
+                    <label class="custom-control-label" for="open-results-new-window">Open results in new window</label>
+                </div>
+            </div>
+            <div class="col-7">
+                <button type="submit" class="btn btn-outline-primary float-right" role="button" aria-label="Search">
+                    {% trans %}Search{% endtrans %}
+                </button>
+                <button class="btn btn-outline-info float-right mr-3" type="button" role="button"
+                        data-toggle="collapse" data-target="#advancedOptions"
+                        aria-expanded="false" aria-controls="advancedOptions" aria-label="Advanced Search Options">
+                    Advanced Search Options
+                </button>
+            </div>
+        </div>
+        <div class="collapse mt-3" id="advancedOptions">
+            <div class="form-group form-row">
+                <label for="match-type-select" class="col-sm-2 col-form-label" aria-label="Match Type">
+                    Match Type:
+                </label>
+                <select id="match-type-select" class="form-control form-control col-sm-6">
+                    <option value=""></option>
+                    <option value="prefix">Prefix</option>
+                    <option value="host">Host</option>
+                    <option value="domain">Domain</option>
+                </select>
+            </div>
+            <p style="cursor: help;">
+               <span data-toggle="tooltip" data-placement="right"
+                     title="Restricts the results to the given date/time range (inclusive)">
+                   Date/Time Range
+                </span>
+            </p>
+            <div class="form-row">
+                <div class="col-6">
+                    <label class="sr-only" for="dt-from" aria-label="Date/Time Range From">From:</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">From:</div>
+                        </div>
+                        <input id="dt-from" type="number" name="date-range-from" class="form-control"
+                               pattern="^\d{4,14}$">
+                        <div class="invalid-feedback" id="dt-from-bad">
+                            Please enter a valid <b>From</b> timestamp. Timestamps may be 4 <= ts <=14 digits
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label class="sr-only" for="dt-to" aria-label="Date/Time Range To">To:</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">To:</div>
+                        </div>
+                        <input id="dt-to" type="number" name="date-range-to" class="form-control" pattern="^\d{4,14}$">
+                        <div class="invalid-feedback" id="dt-to-bad">
+                            Please enter a valid <b>To</b> timestamp. Timestamps may be 4 <= ts <=14 digits
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <div class="form-row">
+                    <div class="col-6">
+                        <p>Filtering</p>
+                    </div>
+                    <div class="col-6">
+                        <button id="clear-filters" class="btn btn-outline-warning float-right" type="button">
+                            Clear Filters
+                        </button>
+                        <button id="add-filter" class="btn btn-outline-secondary float-right mr-2" type="button">
+                            Add Filter
+                        </button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-6">
+                        <div class="row pb-1">
+                            <label for="filter-by" class="col-form-label col-3">By:</label>
+                            <select id="filter-by" class="form-control col-7">
+                                <option value="" selected></option>
+                                <option value="mime">Mime Type</option>
+                                <option value="status">Status</option>
+                                <option value="url">URL</option>
+                            </select>
+                        </div>
+                        <div class="row pb-1">
+                            <label for="filter-modifier" class="col-form-label col-3">How:</label>
+                            <select id="filter-modifier" class="form-control col-7">
+                                <option value="=">Contains</option>
+                                <option value="==">Matches Exactly</option>
+                                <option value="=~">Matches Regex</option>
+                                <option value="=!">Does Not Contains</option>
+                                <option value="=!=">Is Not</option>
+                                <option value="=!~">Does Not Begins With</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <label for="filter-expression" class="col-form-label col-3">Expr:</label>
+                            <input type="text" id="filter-expression" class="form-control col-7"
+                                   placeholder="Enter an expression to filter by"
+                            >
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <ul id="filter-list" class="filter-list">
+                            <li id="filtering-nothing">No Filter</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% if metadata %}
+    <div class="container mt-4 justify-content-center">
+        <p class="lead">Collection Metadata</p>
+        <div class="row">
+            <div class="col-4 pr-1">
+                <div class="list-group" id="collection-metadata" role="tablist">
+                    {% for key in metadata.keys() %}
+                        <a class="list-group-item list-group-item-action text-uppercase {% if loop.index0 == 0 %}active{% endif %}"
+                           data-toggle="list" href="#collection-metadata-{{ key }}" role="tab">
+                            {{ key }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-8 pl-1">
+                <div class="tab-content h-100">
+                    {% for key, val in metadata.items() %}
+                        <div class="tab-pane inherit-height {% if loop.index0 == 0 %}active{% endif %}"
+                             id="collection-metadata-{{ key }}" role="tabpanel">
+                            <div class="card inherit-height">
+                                <div class="card-body">
+                                    {{ val }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

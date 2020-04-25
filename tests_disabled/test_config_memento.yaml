@@ -1,0 +1,31 @@
+# pywb memento test config file
+# ========================================
+
+# minimal settings for memento http api testing
+
+collections:
+    pywb: ./sample_archive/cdx/
+
+    pywb-no-redir:
+        index_paths: ./sample_archive/cdx/
+        redir_to_exact: false
+
+archive_paths: ['./sample_archive/warcs/']
+
+# Test memento
+enable_memento: true
+
+# Enable simple http proxy mode
+enable_http_proxy: true
+
+# test unaltered replay for proxy as well
+proxy_options:
+    use_banner: false
+    use_client_rewrite: false
+    use_default_coll: pywb
+
+# enable cdx server api for timemap
+enable_cdx_api: true
+
+# test memento with framed replay
+framed_replay: true
