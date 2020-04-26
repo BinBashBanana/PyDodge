@@ -2,6 +2,8 @@
 
 HTTP/HTTPS proxy
 
-Install with ``python setup.py install``
+Install dependencies with `pip install -r requirements.txt`
 
-Run it with ``wayback --proxy my-coll``
+Install with `python setup.py install`
+
+Run it with `wayback --proxy my-coll`
