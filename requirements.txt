@@ -16,10 +16,3 @@ fakeredis<1.0
 tldextract
 babel
 gunicorn
-certauth
-youtube-dl
-boto3
-uwsgi
-git+https://github.com/esnme/ultrajson.git
-pysocks
-lxml
