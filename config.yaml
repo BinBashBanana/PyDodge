@@ -3,7 +3,7 @@
 #
 
 proxy:
-    coll: my-coll
+    coll: live
     ca_name: pywb HTTPS Proxy CA
     ca_file_cache: ./proxy-certs/pywb-ca.pem
     recording: false
@@ -12,6 +12,7 @@ proxy:
     default_timestamp: ''
 
 collections:
+    live: $live
     all: $all
     pywb:
         index_paths: ./sample_archive/cdx/
