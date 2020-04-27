@@ -1,3 +1,2 @@
-pip install -r requirements.txt
 python setup.py install
-uwsgi uwsgi.ini
+uwsgi uwsgi.ini --callable app

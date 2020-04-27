@@ -1,1 +1,1 @@
-web: uwsgi uwsgi.ini --callable app
+web: bash run.sh
