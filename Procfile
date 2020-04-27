@@ -1,1 +1,1 @@
-web: bash run-gunicorn.sh
+web: uwsgi uwsgi.ini
