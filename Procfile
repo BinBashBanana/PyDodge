@@ -1,1 +1,1 @@
-web: uwsgi uwsgi.ini --callable app
+web: uwsgi uwsgi.ini
