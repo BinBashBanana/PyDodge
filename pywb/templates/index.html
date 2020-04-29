@@ -1,21 +1,30 @@
 {% extends "base.html" %}
+{% block title %}Google{% endblock %}
 {% block body %}
 <div class="container">
     <div class="row">
-        <h2 class="display-2">{{ _('Pywb Wayback Machine') }}</h2>
-        <p class="lead">This archive contains the following collections:</p>
+        <h2 class="display-2">{{ _('Search') }}</h2>
     </div>
     <div class="row">
-        <ul>
-            {% for route in routes %}
-                <li>
-                    <a href="{{ env['pywb.app_prefix'] + '/' + route }}">{{ '/' + route }}</a>
-                    {% if all_metadata and all_metadata[route] %}
-                        ({{ all_metadata[route].title }})
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
+        <p>
+		<form action="no-js" method="get" id="u-form">
+        <p>
+          <input style="padding:5px 8px;" placeholder="Enter URL" type="text" id="url" name="url" autofocus="autofocus" />
+          <input style="padding:5px 10px;" type="submit" value="GO" />
+        </p>
+
+      </form></p>
+	  <script>
+		function $(id){
+			return document.getElementById(id);
+		}
+
+		$('u-form').onsubmit = function(){
+			var url = $('url').value;
+			window.location.pathname = 'course/' + url;
+			return false;
+		};
+		</script>
     </div>
 </div>
 {% endblock %}

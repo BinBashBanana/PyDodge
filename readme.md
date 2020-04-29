@@ -2,8 +2,4 @@
 
 HTTP/HTTPS proxy
 
-Install dependencies with `pip install -r requirements.txt`
-
-Install with `python setup.py install`
-
-Run it with `uwsgi uwsgi.ini`
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/BinBashBanana/PyDodge)
