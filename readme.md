@@ -1,4 +1,4 @@
-# PYWB PyDodge
+# PYWB PyDodge (Disguised as Google)
 
 HTTP/HTTPS proxy
 
