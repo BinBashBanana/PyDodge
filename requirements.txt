@@ -18,3 +18,5 @@ fakeredis<1.0
 tldextract
 babel
 gunicorn
+certauth
+youtube-dl
