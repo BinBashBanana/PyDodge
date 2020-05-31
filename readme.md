@@ -10,14 +10,10 @@ Usage: `https://example.com/course/https://example.com`
 
 Setup
 
-1. `pip install -r requirements.txt`
-
-2. `python setup.py install`
-
-
+`pip install -r requirements.txt`
 
 Running
 
-`uwsgi uwsgi.ini`
+`bash run.sh`
 
 Available on `localhost:8080`
