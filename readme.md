@@ -14,6 +14,6 @@ Setup
 
 Running
 
-`bash run.sh`
+`. run.sh`
 
 Available on `localhost:8080`
