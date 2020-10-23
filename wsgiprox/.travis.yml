@@ -1,0 +1,33 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+matrix:
+  include:
+    - python: "3.7"
+      dist: xenial
+      sudo: required
+
+os:
+  - linux
+
+sudo: false
+
+install:
+  - "pip install -U pip"
+  - "pip install -U setuptools"
+  - "pip install gevent-websocket pyopenssl"
+  - "pip install uwsgi"
+  - "pip install coverage pytest-cov coveralls"
+  - python setup.py install
+
+script:
+  - python setup.py test
+
+after_success:
+  - coveralls
+
