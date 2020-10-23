@@ -11,7 +11,7 @@ py3amf
 uwsgi
 werkzeug
 webencodings
-gevent==1.4.0
+gevent==20.9.0
 webassets==0.12.1
 portalocker
 -e ./wsgiprox
