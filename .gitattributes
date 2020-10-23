@@ -1,7 +1,0 @@
-*.arc  -text
-*.warc -text
-*.idx  -text
-*.idxj -text
-*.cdx  -text
-*.cdxj -text
-*.gz   -text

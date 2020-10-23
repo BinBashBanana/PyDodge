@@ -8,7 +8,6 @@
 *.egg-info
 dist
 build
-venv
 eggs
 .eggs
 parts
@@ -27,6 +26,8 @@ ca/pywb-ca.pem
 ca/certs/
 proxy-certs/
 collections/
+
+venv/
 
 # Installer logs
 pip-log.txt

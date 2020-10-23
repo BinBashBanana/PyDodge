@@ -9,22 +9,11 @@ proxy:
     recording: false
     enable_banner: true
     enable_content_rewrite: true
-    default_timestamp: ''
 
 collections:
     course: $live
-    all: $all
-    pywb:
-        index_paths: ./sample_archive/cdx/
-        archive_paths: ./sample_archive/warcs/
-# Settings for each collection
+
 use_js_obj_proxy: true
-
-# Memento support, enable
 enable_memento: true
-
-# Replay content in an iframe
 framed_replay: false
-
 enable_http_proxy: true
-enable_https_proxy: true

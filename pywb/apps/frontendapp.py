@@ -7,6 +7,7 @@ from six import iteritems
 from warcio.utils import to_native_str
 from warcio.timeutils import iso_date_to_timestamp
 from wsgiprox.wsgiprox import WSGIProxMiddleware
+from certauth.certauth import CertificateAuthority
 
 from pywb.recorder.multifilewarcwriter import MultiFileWARCWriter
 from pywb.recorder.recorderapp import RecorderApp
@@ -658,6 +659,7 @@ class FrontEndApp(object):
                                           self.proxy_route_request,
                                           proxy_host=proxy_config.get('host', 'pywb.proxy'),
                                           proxy_options=proxy_config)
+										  #ca?
 
     def proxy_route_request(self, url, environ):
         """ Return the full url that this proxy request will be routed to

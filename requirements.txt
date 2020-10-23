@@ -1,4 +1,4 @@
-virtualenv
+virtualenv>=20.0.35
 six
 warcio>=1.7.1
 requests
@@ -14,7 +14,7 @@ webencodings
 gevent==1.4.0
 webassets==0.12.1
 portalocker
-wsgiprox>=1.5.1
+-e ./wsgiprox
 fakeredis<1.0
 tldextract
 babel

@@ -1,3 +1,0 @@
-net,example)/abc/path - {"access": "block"}
-com,example)/foo - {"access": "exclude"}
-

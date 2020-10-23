@@ -1,3 +1,0 @@
-net,example)/test - {"access": "allow"}
-net,domain, - {"access": "allow"}
-net, - {"access": "allow"}
