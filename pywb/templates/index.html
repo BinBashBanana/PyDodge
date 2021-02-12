@@ -17,7 +17,7 @@
 				e.preventDefault();
 				var url = document.getElementById("pruorl").value;
 				if (url.includes(".")) {
-					window.location.pathname = prefix + "/" + (url.substring(0, 4) == "http" ? url : "https://" + url);
+					window.location.href = prefix + "/" + (url.substring(0, 4) == "http" ? url : "https://" + url);
 				} else if (url) {
 					window.location.href = "https://google.com/search?q=" + url.replace(/ /g, "+");
 				}
