@@ -7,7 +7,7 @@ proxy:
     ca_name: pywb HTTPS Proxy CA
     ca_file_cache: ./proxy-certs/pywb-ca.pem
     recording: false
-    enable_banner: true
+    enable_banner: false
     enable_content_rewrite: true
 
 collections:

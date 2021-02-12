@@ -1,1 +1,1 @@
-web: . run-heroku.sh
+web: bash run-heroku.sh

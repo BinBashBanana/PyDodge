@@ -7,10 +7,11 @@ from six import iteritems
 from warcio.utils import to_native_str
 from warcio.timeutils import iso_date_to_timestamp
 from wsgiprox.wsgiprox import WSGIProxMiddleware
-from certauth.certauth import CertificateAuthority
 
 from pywb.recorder.multifilewarcwriter import MultiFileWARCWriter
 from pywb.recorder.recorderapp import RecorderApp
+from pywb.recorder.filters import SkipDupePolicy, WriteDupePolicy, WriteRevisitDupePolicy
+from pywb.recorder.redisindexer import WritableRedisIndexer
 
 from pywb.utils.loaders import load_yaml_config
 from pywb.utils.geventserver import GeventServer
@@ -208,13 +209,40 @@ class FrontEndApp(object):
         else:
             recorder_coll = recorder_config['source_coll']
 
-        # TODO: support dedup
-        dedup_index = None
+        # cache mode
+        self.rec_cache_mode = recorder_config.get('cache', 'default')
+
+        dedup_policy = recorder_config.get('dedup_policy')
+        dedup_by_url = False
+
+        if dedup_policy == 'none':
+            dedup_policy = ''
+
+        if dedup_policy == 'keep':
+            dedup_policy = WriteDupePolicy()
+        elif dedup_policy == 'revisit':
+            dedup_policy = WriteRevisitDupePolicy()
+        elif dedup_policy == 'skip':
+            dedup_policy = SkipDupePolicy()
+            dedup_by_url = True
+        elif dedup_policy:
+            msg = 'Invalid option for dedup_policy: {0}'
+            raise Exception(msg.format(dedup_policy))
+
+        if dedup_policy:
+            dedup_index = WritableRedisIndexer(redis_url=self.warcserver.dedup_index_url,
+                                               dupe_policy=dedup_policy,
+                                               rel_path_template=self.warcserver.root_dir + '/{coll}/archive')
+        else:
+            dedup_index = None
+
+
         warc_writer = MultiFileWARCWriter(self.warcserver.archive_paths,
                                           max_size=int(recorder_config.get('rollover_size', 1000000000)),
                                           max_idle_secs=int(recorder_config.get('rollover_idle_secs', 600)),
                                           filename_template=recorder_config.get('filename_template'),
-                                          dedup_index=dedup_index)
+                                          dedup_index=dedup_index,
+                                          dedup_by_url=dedup_by_url)
 
         self.recorder = RecorderApp(self.RECORD_SERVER % str(self.warcserver_server.port), warc_writer,
                                     accept_colls=recorder_config.get('source_filter'))
@@ -429,6 +457,7 @@ class FrontEndApp(object):
         coll_config = self.get_coll_config(coll)
         if record:
             coll_config['type'] = 'record'
+            coll_config['cache'] = self.rec_cache_mode
 
         if timemap_output:
             coll_config['output'] = timemap_output
@@ -659,7 +688,6 @@ class FrontEndApp(object):
                                           self.proxy_route_request,
                                           proxy_host=proxy_config.get('host', 'pywb.proxy'),
                                           proxy_options=proxy_config)
-										  #ca?
 
     def proxy_route_request(self, url, environ):
         """ Return the full url that this proxy request will be routed to

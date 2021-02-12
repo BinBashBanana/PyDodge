@@ -14,11 +14,12 @@ The prefix can be changed in config.yaml on line 6 and 14.
 
 Setup
 
-`pip install -r requirements.txt`
+`pip install -r requirements.txt  
+sudo python setup.py install`
 
 Running
 
-`. run.sh`
+`bash run.sh`
 
 Available on `localhost:8080`
 
@@ -26,4 +27,4 @@ Available on `localhost:8080`
 
 Ilya Kreymer and the webrecorder team.
 
-Check line 380 in wsgiprox.py for the modified thing.
+(PYWB version: release 2.5.0)

@@ -1,6 +1,5 @@
 import json
 import six
-import pyamf
 from pyamf.remoting import Envelope, Request
 from pyamf.flex.messaging import RemotingMessage
 

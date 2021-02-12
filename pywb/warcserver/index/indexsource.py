@@ -113,7 +113,7 @@ class FileIndexSource(BaseIndexSource):
 class RemoteIndexSource(BaseIndexSource):
     CDX_MATCH_RX = re.compile('^cdxj?\+(?P<url>https?\:.*)')
 
-    def __init__(self, api_url, replay_url, url_field='load_url', closest_limit=10):
+    def __init__(self, api_url, replay_url, url_field='load_url', closest_limit=100):
         self.api_url = api_url
         self.replay_url = replay_url
         self.url_field = url_field
@@ -124,6 +124,9 @@ class RemoteIndexSource(BaseIndexSource):
         api_url = res_template(self.api_url, params)
         if 'closest' in params and self.closest_limit:
             api_url += '&limit=' + str(self.closest_limit)
+
+        if 'matchType' in params:
+            api_url += '&matchType=' + params.get('matchType')
 
         return api_url
 

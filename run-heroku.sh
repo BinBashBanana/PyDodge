@@ -1,3 +1,2 @@
-virtualenv venv
-. venv/bin/activate
+echo "force_scheme: https" >> ./config.yaml
 uwsgi uwsgi.ini

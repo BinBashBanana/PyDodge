@@ -17,7 +17,7 @@
 		  e.preventDefault();
 		  var url = document.getElementById('pruorl').value;
       	  if(url.substr(0,4) != "http"){
-      		url = "http://" + url;
+      		url = "https://" + url;
       	  }
       	  window.location.pathname = 'course/' + url;
         }, false);

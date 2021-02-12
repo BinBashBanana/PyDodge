@@ -149,25 +149,25 @@ StatusAndHeadersParserException: Expected Status Line starting with ['HTTP/1.0',
 #=================================================================
 
 # test sort, multiple inputs
->>> cli_lines(['--sort', '-',  TEST_WARC_DIR])
+>>> cli_lines(['--sort', '-o', '-',  TEST_WARC_DIR])
 com,example)/ 20130729195151 http://test@example.com/ warc/revisit - B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - 591 355 example-url-agnostic-revisit.warc.gz
 urn:x-wpull:log 20150330235046 urn:X-wpull:log text/plain - Q32A3PBAN6S7I26HWZDX5CDCB6MN6UN6 - - 557 3181 example-wpull.warc.gz
-Total: 212
+Total: 213
 
 # test sort, multiple inputs, recursive, from base test dir
->>> cli_lines(['--sort', '-r', '-',  get_test_dir()])
+>>> cli_lines(['--sort', '-r', '-o', '-',  get_test_dir()])
 com,example)/ 20130729195151 http://test@example.com/ warc/revisit - B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - 591 355 warcs/example-url-agnostic-revisit.warc.gz
 urn:x-wpull:log 20150330235046 urn:X-wpull:log text/plain - Q32A3PBAN6S7I26HWZDX5CDCB6MN6UN6 - - 557 3181 warcs/example-wpull.warc.gz
-Total: 212
+Total: 213
 
 # test sort, 9-field, multiple inputs, all records + post query
 >>> cli_lines(['--sort', '-a', '-p', '-9', TEST_WARC_DIR])
 com,example)/ 20130729195151 http://test@example.com/ warc/revisit - B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - 355 example-url-agnostic-revisit.warc.gz
 urn:x-wpull:log 20150330235046 urn:X-wpull:log text/plain - Q32A3PBAN6S7I26HWZDX5CDCB6MN6UN6 - 3181 example-wpull.warc.gz
-Total: 407
+Total: 408
 
 # test writing to stdout
->>> cli_lines(['-', TEST_WARC_DIR + 'example.warc.gz'])
+>>> cli_lines([TEST_WARC_DIR + 'example.warc.gz'])
 com,example)/?example=1 20140103030321 http://example.com?example=1 text/html 200 B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - 1043 333 example.warc.gz
 org,iana)/domains/example 20140128051539 http://www.iana.org/domains/example text/html 302 JZ622UA23G5ZU6Y3XAKH4LINONUEICEG - - 577 2907 example.warc.gz
 Total: 4
@@ -178,7 +178,7 @@ com,example)/?example=1 20140103030321 http://example.com?example=1 text/html 20
 org,iana)/domains/example 20140128051539 http://www.iana.org/domains/example text/html 302 JZ622UA23G5ZU6Y3XAKH4LINONUEICEG - - 577 2907 example.warc.gz
 Total: 4
 
-# test custom root dir for cdx filenames, singlw warc
+# test custom root dir for cdx filenames, single warc
 >>> cli_lines(['--dir-root', get_test_dir() + 'other/', TEST_WARC_DIR + 'example.warc.gz'])
 com,example)/?example=1 20140103030321 http://example.com?example=1 text/html 200 B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - 1043 333 ../warcs/example.warc.gz
 org,iana)/domains/example 20140128051539 http://www.iana.org/domains/example text/html 302 JZ622UA23G5ZU6Y3XAKH4LINONUEICEG - - 577 2907 ../warcs/example.warc.gz
@@ -188,7 +188,7 @@ Total: 4
 >>> cli_lines(['--sort', '--dir-root', get_test_dir() + 'other/', TEST_WARC_DIR])
 com,example)/ 20130729195151 http://test@example.com/ warc/revisit - B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - 591 355 ../warcs/example-url-agnostic-revisit.warc.gz
 urn:x-wpull:log 20150330235046 urn:X-wpull:log text/plain - Q32A3PBAN6S7I26HWZDX5CDCB6MN6UN6 - - 557 3181 ../warcs/example-wpull.warc.gz
-Total: 212
+Total: 213
 
 # test writing to temp dir, also use unicode filename
 >>> cli_lines_with_dir(TEST_WARC_DIR + 'example.warc.gz')
@@ -265,7 +265,7 @@ def cli_lines_with_dir(input_):
         tmp_dir = None
         tmp_dir = tempfile.mkdtemp()
 
-        main([tmp_dir, input_])
+        main(['-o', tmp_dir, input_])
 
         filename = cdx_filename(os.path.basename(input_))
 
@@ -460,6 +460,104 @@ ABCD\r\n\
     assert buff.getvalue() == b"""\
  CDX N b a m s k r M S V g
 com,example)/xyz.pdf 20140401052011 http://example.com/xyz.pdf application/http 200 EDIYL6WNHDY62TPKUCPSEWMOAAGYTOAS - - 310 0 test.warc.gz
+"""
+
+
+def test_multipart_form():
+    test_data = b'\
+WARC/1.0\r\n\
+WARC-Type: response\r\n\
+WARC-Record-ID: <urn:uuid:073fac44-c383-4a2b-980d-76fec83bd20d>\r\n\
+WARC-Date: 2020-11-19T19:54:34Z\r\n\
+WARC-Target-URI: https://example.com/ajax/bz?foo=bar\r\n\
+Content-Type: application/http;msgtype=response\r\n\
+WARC-Payload-Digest: sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ\r\n\
+Content-Length: 48\r\n\
+WARC-Block-Digest: sha1:XN45YTSBLG5PLJ4HA7DRDYGJBM5VW4UO\r\n\
+\r\n\
+Content-Type: text/html; charset="utf-8"\r\n\
+\r\n\
+ABCD\r\n\
+\r\n\
+\r\n\
+\r\n\
+WARC/1.0\r\n\
+WARC-Type: request\r\n\
+WARC-Record-ID: <urn:uuid:3084e79c-ae58-4bfd-8590-fcf2830fe896>\r\n\
+WARC-Date: 2020-11-19T19:54:34Z\r\n\
+WARC-Target-URI: https://example.com/ajax/bz?foo=bar\r\n\
+WARC-Concurrent-To: <urn:uuid:073fac44-c383-4a2b-980d-76fec83bd20d>\r\n\
+WARC-Block-Digest: sha1:LNYP3X3NWXQLUGDI745P4L4FK27XGP24\r\n\
+Content-Type: application/http;msgtype=request\r\n\
+Content-Length: 321\r\n\
+\r\n\
+POST /ajax/bz?foo=bar HTTP/1.1\r\n\
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryWUBf9liofZK0nuJd\r\n\
+content-Length: 199\r\n\
+\r\n\
+------WebKitFormBoundaryWUBf9liofZK0nuJd\r\n\
+Content-Disposition: form-data; name="q"\r\n\
+\r\n\
+[{"webSessionId":"pb2tr7:vx83uz:fdi8ta","user":"0"}]\r\n\
+------WebKitFormBoundaryWUBf9liofZK0nuJd--\r\n\
+\r\n\
+'
+    options = dict(include_all=True, append_post=True)
+    buff = BytesIO()
+    test_record = BytesIO(test_data)
+    write_cdx_index(buff, test_record, 'test.warc.gz', **options)
+    print(buff.getvalue())
+    assert buff.getvalue() == b"""\
+ CDX N b a m s k r M S V g
+com,example)/ajax/bz?foo=bar&q=[{"websessionid":"pb2tr7:vx83uz:fdi8ta","user":"0"}] 20201119195434 https://example.com/ajax/bz?foo=bar unk text/html; 3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ - - 420 0 test.warc.gz
+com,example)/ajax/bz?foo=bar&q=[{"websessionid":"pb2tr7:vx83uz:fdi8ta","user":"0"}] 20201119195434 https://example.com/ajax/bz?foo=bar multipart/form-data - - - - 701 428 test.warc.gz
+"""
+
+
+def test_multipart_form_no_boundary():
+    test_data = b'\
+WARC/1.0\r\n\
+WARC-Type: response\r\n\
+WARC-Record-ID: <urn:uuid:3bc1606a-d517-487e-a6d5-bfeaebda2ec3>\r\n\
+WARC-Date: 2020-11-19T14:02:52Z\r\n\
+WARC-Target-URI: https://capi.connatix.com/core/story?v=77797\r\n\
+WARC-IP-Address: 18.221.6.219\r\n\
+Content-Type: application/http;msgtype=response\r\n\
+WARC-Payload-Digest: sha1:SIGZ3RJW5J7DUKEZ4R7RSYUZNGLETIS5\r\n\
+Content-Length: 41\r\n\
+WARC-Block-Digest: sha1:JXKKZNALIPOW7J2FX5XUTGQZXKBSGZLU\r\n\
+\r\n\
+Content-Type: multipart/form-data\r\n\
+\r\n\
+ABCD\r\n\
+\r\n\
+\r\n\
+\r\n\
+WARC/1.0\r\n\
+WARC-Type: request\r\n\
+WARC-Record-ID: <urn:uuid:d5e7186f-5725-4ed1-b199-56fbdf4bd805>\r\n\
+WARC-Date: 2020-11-19T14:02:52Z\r\n\
+WARC-Target-URI: https://capi.connatix.com/core/story?v=77797\r\n\
+WARC-Concurrent-To: <urn:uuid:3bc1606a-d517-487e-a6d5-bfeaebda2ec3>\r\n\
+WARC-Block-Digest: sha1:QJ2YUIKEWDSCLK5A2DHGLQ7WWEKYMO3W\r\n\
+Content-Type: application/http;msgtype=request\r\n\
+Content-Length: 111\r\n\
+\r\n\
+POST /core/story?v=77797 HTTP/1.1\r\n\
+Content-Length: 19\r\n\
+Content-Type: multipart/form-data\r\n\
+\r\n\
+{"text": "default"}\r\n\
+\r\n\
+'
+    options = dict(include_all=True, append_post=True)
+    buff = BytesIO()
+    test_record = BytesIO(test_data)
+    write_cdx_index(buff, test_record, 'test.warc.gz', **options)
+    assert buff.getvalue() == b"""\
+ CDX N b a m s k r M S V g
+com,connatix,capi)/core/story?__wb_post_data=eyj0zxh0ijogimrlzmf1bhqifq==&v=77797 20201119140252 https://capi.connatix.com/core/story?v=77797 unk multipart/form-data SIGZ3RJW5J7DUKEZ4R7RSYUZNGLETIS5 - - 453 0 test.warc.gz
+com,connatix,capi)/core/story?__wb_post_data=eyj0zxh0ijogimrlzmf1bhqifq==&v=77797 20201119140252 https://capi.connatix.com/core/story?v=77797 multipart/form-data - - - - 500 461 test.warc.gz
 """
 
 

@@ -1,6 +1,5 @@
-virtualenv>=20.0.35
 six
-warcio>=1.7.4
+warcio>=1.7.1
 requests
 redis<3.0
 jinja2<3.0.0
@@ -14,7 +13,7 @@ webencodings
 gevent==20.9.0
 webassets==0.12.1
 portalocker
--e ./wsgiprox
+wsgiprox
 fakeredis<1.0
 tldextract
 babel
