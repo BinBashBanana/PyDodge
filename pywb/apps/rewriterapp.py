@@ -88,7 +88,7 @@ class RewriterApp(object):
 
         self.error_view = BaseInsertView(self.jinja_env, self._html_templ('error_html'))
         self.not_found_view = BaseInsertView(self.jinja_env, self._html_templ('not_found_html'))
-        self.query_view = BaseInsertView(self.jinja_env, self._html_templ('query_html'))
+        self.query_view = None
 
         self.use_js_obj_proxy = config.get('use_js_obj_proxy', True)
 
@@ -304,7 +304,7 @@ class RewriterApp(object):
         wb_url = wb_url.replace('#', '%23')
         wb_url = WbUrl(wb_url)
 
-        proto = environ.get('HTTP_X_FORWARDED_PROTO', self.force_scheme)
+        # proto = environ.get('HTTP_X_FORWARDED_PROTO', self.force_scheme)
         proto = "https"
 
         if proto:

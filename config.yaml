@@ -17,4 +17,3 @@ use_js_obj_proxy: true
 enable_memento: true
 framed_replay: false
 enable_http_proxy: true
-force_scheme: https

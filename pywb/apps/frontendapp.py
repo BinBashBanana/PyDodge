@@ -165,7 +165,7 @@ class FrontEndApp(object):
         """
         routes = [
             Rule(coll_prefix + self.cdx_api_endpoint, endpoint=self.serve_cdx),
-            Rule(coll_prefix + '/', endpoint=self.serve_coll_page),
+            #Rule(coll_prefix + '/', endpoint=self.serve_coll_page),
             Rule(coll_prefix + '/timemap/<timemap_output>/<path:url>', endpoint=self.serve_content),
             Rule(coll_prefix + '/<path:url>', endpoint=self.serve_content)
         ]
