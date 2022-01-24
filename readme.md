@@ -14,8 +14,7 @@ The prefix can be changed in config.yaml on line 6 and 14.
 
 Setup
 
-`pip install -r requirements.txt`  
-`sudo python setup.py install`
+`pip install -r requirements.txt`
 
 Running
 

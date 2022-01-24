@@ -1,0 +1,20 @@
+# pywb config file
+# ========================================
+#
+
+proxy:
+    coll: course
+    ca_name: pywb HTTPS Proxy CA
+    ca_file_cache: ./proxy-certs/pywb-ca.pem
+    recording: false
+    enable_banner: false
+    enable_content_rewrite: true
+
+collections:
+    course: $live
+
+use_js_obj_proxy: true
+enable_memento: true
+framed_replay: false
+enable_http_proxy: true
+force_scheme: https
