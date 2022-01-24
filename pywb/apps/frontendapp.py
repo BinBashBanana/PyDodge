@@ -2,16 +2,16 @@ from gevent.monkey import patch_all; patch_all()
 
 from werkzeug.routing import Map, Rule, RequestRedirect, Submount
 from werkzeug.wsgi import pop_path_info
-from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urljoin, parse_qsl
 from six import iteritems
 from warcio.utils import to_native_str
-from warcio.timeutils import iso_date_to_timestamp
+from warcio.timeutils import iso_date_to_timestamp, timestamp_to_iso_date
 from wsgiprox.wsgiprox import WSGIProxMiddleware
 
 from pywb.recorder.multifilewarcwriter import MultiFileWARCWriter
 from pywb.recorder.recorderapp import RecorderApp
 from pywb.recorder.filters import SkipDupePolicy, WriteDupePolicy, WriteRevisitDupePolicy
-from pywb.recorder.redisindexer import WritableRedisIndexer
+from pywb.recorder.redisindexer import WritableRedisIndexer, RedisPendingCounterTempBuffer
 
 from pywb.utils.loaders import load_yaml_config
 from pywb.utils.geventserver import GeventServer
@@ -74,6 +74,7 @@ class FrontEndApp(object):
                                      custom_config=custom_config)
         self.recorder = None
         self.recorder_path = None
+        self.put_custom_record_path = None
         self.proxy_default_timestamp = None
 
         config = self.warcserver.config
@@ -165,13 +166,17 @@ class FrontEndApp(object):
         """
         routes = [
             Rule(coll_prefix + self.cdx_api_endpoint, endpoint=self.serve_cdx),
-            #Rule(coll_prefix + '/', endpoint=self.serve_coll_page),
+            Rule(coll_prefix + '/', endpoint=self.serve_coll_page),
             Rule(coll_prefix + '/timemap/<timemap_output>/<path:url>', endpoint=self.serve_content),
             Rule(coll_prefix + '/<path:url>', endpoint=self.serve_content)
         ]
 
         if self.recorder_path:
             routes.append(Rule(coll_prefix + self.RECORD_ROUTE + '/<path:url>', endpoint=self.serve_record))
+
+            # enable PUT of custom data as 'resource' records
+            if self.put_custom_record_path:
+                routes.append(Rule(coll_prefix + self.RECORD_ROUTE, endpoint=self.put_custom_record, methods=["PUT"]))
 
         return routes
 
@@ -244,12 +249,24 @@ class FrontEndApp(object):
                                           dedup_index=dedup_index,
                                           dedup_by_url=dedup_by_url)
 
+        if dedup_policy:
+            pending_counter = self.warcserver.dedup_index_url.replace(':cdxj', ':pending')
+            pending_timeout = recorder_config.get('pending_timeout', 30)
+            create_buff_func = lambda params, name: RedisPendingCounterTempBuffer(512 * 1024, pending_counter, params, name, pending_timeout)
+        else:
+            create_buff_func = None
+
         self.recorder = RecorderApp(self.RECORD_SERVER % str(self.warcserver_server.port), warc_writer,
-                                    accept_colls=recorder_config.get('source_filter'))
+                                    accept_colls=recorder_config.get('source_filter'),
+                                    create_buff_func=create_buff_func)
 
         recorder_server = GeventServer(self.recorder, port=0)
 
         self.recorder_path = self.RECORD_API % (recorder_server.port, recorder_coll)
+
+        # enable PUT of custom data as 'resource' records
+        if recorder_config.get('enable_put_custom_record'):
+            self.put_custom_record_path = self.recorder_path + '&put_record={rec_type}&url={url}'
 
     def init_autoindex(self, auto_interval):
         """Initialize and start the auto-indexing of the collections. If auto_interval is None this is a no op.
@@ -404,10 +421,12 @@ class FrontEndApp(object):
         try:
             res = requests.get(cdx_url, stream=True)
 
+            status_line = '{} {}'.format(res.status_code, res.reason)
             content_type = res.headers.get('Content-Type')
 
             return WbResponse.bin_stream(StreamIter(res.raw),
-                                         content_type=content_type)
+                                         content_type=content_type,
+                                         status=status_line)
 
         except Exception as e:
             return WbResponse.text_response('Error: ' + str(e), status='400 Bad Request')
@@ -465,6 +484,47 @@ class FrontEndApp(object):
             wb_url_str = wb_url_str.replace('timemap/{0}/'.format(timemap_output), '')
 
         return self.rewriterapp.render_content(wb_url_str, coll_config, environ)
+
+    def put_custom_record(self, environ, coll="$root"):
+        """ When recording, PUT a custom WARC record to the specified collection
+        (Available only when recording)
+
+        :param dict environ: The WSGI environment dictionary for the request
+        :param str coll: The name of the collection the record is to be served from
+        """
+        chunks = []
+        while True:
+            buff = environ["wsgi.input"].read()
+            if not buff:
+                break
+
+            chunks.append(buff)
+
+        data = b"".join(chunks)
+
+        params = dict(parse_qsl(environ.get("QUERY_STRING")))
+
+        rec_type = "resource"
+
+        headers = {"Content-Type": environ.get("CONTENT_TYPE", "text/plain")}
+
+        target_uri = params.get("url")
+
+        if not target_uri:
+            return WbResponse.json_response({"error": "no url"}, status="400 Bad Request")
+
+        timestamp = params.get("timestamp")
+        if timestamp:
+            headers["WARC-Date"] = timestamp_to_iso_date(timestamp)
+
+        put_url = self.put_custom_record_path.format(
+            url=target_uri, coll=coll, rec_type=rec_type
+        )
+        res = requests.put(put_url, headers=headers, data=data)
+
+        res = res.json()
+
+        return WbResponse.json_response(res)
 
     def setup_paths(self, environ, coll, record=False):
         """Populates the WSGI environment dictionary with the path information necessary to perform a response for
@@ -581,8 +641,8 @@ class FrontEndApp(object):
         urls = self.url_map.bind_to_environ(environ)
         try:
             endpoint, args = urls.match()
-            # store original script_name (original prefix) before modifications are made
-            environ['pywb.app_prefix'] = environ.get('SCRIPT_NAME', '')
+
+            self.rewriterapp.prepare_env(environ)
 
             # store original script_name (original prefix) before modifications are made
             environ['ORIG_SCRIPT_NAME'] = environ.get('SCRIPT_NAME')

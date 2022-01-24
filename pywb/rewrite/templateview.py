@@ -5,10 +5,8 @@ from pywb.utils.loaders import load
 
 from six.moves.urllib.parse import urlsplit, quote
 
-from jinja2 import Environment, TemplateNotFound, contextfunction
+from jinja2 import Environment, TemplateNotFound, contextfunction, select_autoescape
 from jinja2 import FileSystemLoader, PackageLoader, ChoiceLoader
-
-from babel.support import Translations
 
 from webassets.ext.jinja2 import AssetsExtension
 from webassets.loaders import YAMLLoader
@@ -17,6 +15,7 @@ from webassets.env import Resolver
 from pkg_resources import resource_filename
 
 import os
+import logging
 
 try:
     import ujson as json
@@ -77,10 +76,12 @@ class JinjaEnv(object):
 
         if overlay:
             jinja_env = overlay.jinja_env.overlay(loader=loader,
+                                                  autoescape=select_autoescape(),
                                                   trim_blocks=True,
                                                   extensions=extensions)
         else:
             jinja_env = RelEnvironment(loader=loader,
+                                       autoescape=select_autoescape(),
                                        trim_blocks=True,
                                        extensions=extensions)
 
@@ -97,6 +98,8 @@ class JinjaEnv(object):
             assets_env = assets_loader.load_environment()
             assets_env.resolver = PkgResResolver()
             jinja_env.assets_environment = assets_env
+
+        self.default_locale = ''
 
     def _make_loaders(self, paths, packages):
         """Initialize the template loaders based on the supplied paths and packages.
@@ -117,16 +120,22 @@ class JinjaEnv(object):
 
         return loaders
 
-    def init_loc(self, locales_root_dir, locales, loc_map):
+    def init_loc(self, locales_root_dir, locales, loc_map, default_locale):
         locales = locales or []
+        locales_root_dir = locales_root_dir or os.path.join('i18n', 'translations')
+        default_locale = default_locale or 'en'
+        self.default_locale = default_locale
 
-        if locales_root_dir:
-            for loc in locales:
-                loc_map[loc] = Translations.load(locales_root_dir, [loc, 'en'])
-                #jinja_env.jinja_env.install_gettext_translations(translations)
+        if locales:
+            try:
+                from babel.support import Translations
+                for loc in locales:
+                    loc_map[loc] = Translations.load(locales_root_dir, [loc, default_locale])
+            except:
+                logging.warn("Ignoring Locales. You must install i18n extensions with 'pip install pywb[i18n]' to use localization features")
 
         def get_translate(context):
-            loc = context.get('env', {}).get('pywb_lang')
+            loc = context.get('env', {}).get('pywb_lang', default_locale)
             return loc_map.get(loc)
 
         def override_func(jinja_env, name):
@@ -160,6 +169,7 @@ class JinjaEnv(object):
 
         self.jinja_env.globals['locales'] = list(loc_map.keys())
         self.jinja_env.globals['_Q'] = quote_gettext
+        self.jinja_env.globals['default_locale'] = default_locale
 
         @contextfunction
         def switch_locale(context, locale):
@@ -312,7 +322,7 @@ class BaseInsertView(object):
             kwargs.update(params)
 
         kwargs['env'] = env
-        kwargs['static_prefix'] = env.get('pywb.host_prefix', '') + env.get('pywb.app_prefix', '') + '/static'
+        kwargs['static_prefix'] = env.get('pywb.static_prefix', '/static')
 
 
         return template.render(**kwargs)

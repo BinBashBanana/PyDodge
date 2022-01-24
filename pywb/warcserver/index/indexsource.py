@@ -157,9 +157,9 @@ class RemoteIndexSource(BaseIndexSource):
         if name:
             source_coll = params.get('param.' + name + '.src_coll', '')
 
-        cdx[self.url_field] = self.replay_url.format(url=cdx['url'],
+        cdx[self.url_field] = res_template(self.replay_url, dict(url=cdx['url'],
                                                      timestamp=cdx['timestamp'],
-                                                     src_coll=source_coll)
+                                                     src_coll=source_coll))
     def __repr__(self):
         return '{0}({1}, {2})'.format(self.__class__.__name__,
                                       self.api_url,
@@ -248,7 +248,7 @@ class XmlQueryIndexSource(BaseIndexSource):
         try:
             limit = params.get('limit')
             if limit:
-                query = 'limit: {0} '.format(limit) + query
+                query = 'limit:{0} '.format(limit) + query
 
             # OpenSearch API requires double-escaping
             # TODO: add option to not double escape if needed
@@ -314,6 +314,11 @@ class XmlQueryIndexSource(BaseIndexSource):
         cdx['digest'] = self.gettext(item, 'digest')
         cdx['offset'] = self.gettext(item, 'compressedoffset')
         cdx['filename'] = self.gettext(item, 'file')
+
+        length = self.gettext(item, 'compressedendoffset')
+        if length:
+            cdx['length'] = length
+
         return cdx
 
     def gettext(self, item, name):

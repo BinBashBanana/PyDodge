@@ -131,13 +131,13 @@ r"""
 #=================================================================
 
 >>> _test_js_obj_proxy('var foo = this;   location = bar')
-'var foo = _____WB$wombat$check$this$function_____(this);   location = ((self.__WB_check_loc && self.__WB_check_loc(location)) || {}).href = bar'
+'var foo = _____WB$wombat$check$this$function_____(this);   location = ((self.__WB_check_loc && self.__WB_check_loc(location, arguments)) || {}).href = bar'
 
 >>> _test_js_obj_proxy('var that =    this\n   location = bar')
-'var that =    _____WB$wombat$check$this$function_____(this)\n   location = ((self.__WB_check_loc && self.__WB_check_loc(location)) || {}).href = bar'
+'var that =    _____WB$wombat$check$this$function_____(this)\n   location = ((self.__WB_check_loc && self.__WB_check_loc(location, arguments)) || {}).href = bar'
 
 >>> _test_js_obj_proxy('location = "xyz"')
-'location = ((self.__WB_check_loc && self.__WB_check_loc(location)) || {}).href = "xyz"'
+'location = ((self.__WB_check_loc && self.__WB_check_loc(location, arguments)) || {}).href = "xyz"'
 
 >>> _test_js_obj_proxy('var foo = this.location')
 'var foo = _____WB$wombat$check$this$function_____(this).location'
@@ -213,10 +213,13 @@ r"""
 'this. alocation = http://example.com/'
 
 >>> _test_js_obj_proxy(r'this. location = http://example.com/')
-'this. location = ((self.__WB_check_loc && self.__WB_check_loc(location)) || {}).href = http://example.com/'
+'this. location = ((self.__WB_check_loc && self.__WB_check_loc(location, arguments)) || {}).href = http://example.com/'
 
 >>> _test_js_obj_proxy('eval(a)')
 'WB_wombat_runEval(function _____evalIsEvil(_______eval_arg$$) { return eval(_______eval_arg$$); }.bind(this)).eval(a)'
+
+>>> _test_js_obj_proxy(',eval(a)')
+',eval(a)'
 
 >>> _test_js_obj_proxy('this.$eval(a)')
 'this.$eval(a)'
@@ -225,13 +228,32 @@ r"""
 'x = this.$eval; x(a);'
 
 >>> _test_js_obj_proxy('x = eval; x(a);')
-'x = WB_wombat_eval; x(a);'
+'x = self.eval; x(a);'
 
 >>> _test_js_obj_proxy('$eval = eval; $eval(a);')
-'$eval = WB_wombat_eval; $eval(a);'
+'$eval = self.eval; $eval(a);'
+
+>>> _test_js_obj_proxy('foo(a, eval(data));')
+'foo(a, WB_wombat_runEval(function _____evalIsEvil(_______eval_arg$$) { return eval(_______eval_arg$$); }.bind(this)).eval(data));'
+
+>>> _test_js_obj_proxy('function eval() {}')
+'function eval() {}'
 
 >>> _test_js_obj_proxy('window.eval(a);')
-'window.WB_wombat_runEval(function _____evalIsEvil(_______eval_arg$$) { return eval(_______eval_arg$$); }.bind(this)).eval(a);'
+'window.eval(a);'
+
+>>> _test_js_obj_proxy('x = window.eval; x(a);')
+'x = window.eval; x(a);'
+
+>>> _test_js_obj_proxy('obj = { eval : 1 }')
+'obj = { eval : 1 }'
+
+>>> _test_js_obj_proxy('x = obj.eval')
+'x = obj.eval'
+
+>>> _test_js_obj_proxy('x = obj.eval(a)')
+'x = obj.eval(a)'
+
 
 #=================================================================
 # XML Rewriting

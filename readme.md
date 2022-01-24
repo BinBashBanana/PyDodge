@@ -1,6 +1,6 @@
-# PYWB PyDodge (Disguised as Google)
+# PYWB PyDodge
 
-HTTP/HTTPS proxy
+HTTP/HTTPS proxy with rewrites
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/BinBashBanana/PyDodge)
 
@@ -27,4 +27,4 @@ Available on `localhost:8080`
 
 Ilya Kreymer and the webrecorder team.
 
-(PYWB version: release 2.5.0)
+PYWB version: release 2.6.3

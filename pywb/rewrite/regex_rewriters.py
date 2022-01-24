@@ -13,8 +13,8 @@ class RxRules(object):
         return string.replace("https", "http")
 
     @staticmethod
-    def replace_str(replacer):
-        return lambda x, _: x.replace('this', replacer)
+    def replace_str(replacer, match='this'):
+        return lambda x, _: x.replace(match, replacer)
 
     @staticmethod
     def format(template):
@@ -82,7 +82,7 @@ if (!self.__WB_pmw) {{ self.__WB_pmw = function(obj) {{ this.__WB_source = obj; 
         # By using a function the expression injected is an call expression that plays nice in those cases
         this_rw = '_____WB$wombat$check$this$function_____(this)'
 
-        check_loc = '((self.__WB_check_loc && self.__WB_check_loc(location)) || {}).href = '
+        check_loc = '((self.__WB_check_loc && self.__WB_check_loc(location, arguments)) || {}).href = '
 
         self.local_objs = [
             'window',
@@ -96,14 +96,15 @@ if (!self.__WB_pmw) {{ self.__WB_pmw = function(obj) {{ this.__WB_source = obj; 
         ]
 
         local_declares = '\n'.join([local_var_line.format(obj, local_init_func_name) for obj in self.local_objs])
+        local_declares += "\nlet arguments;"
 
         prop_str = '|'.join(self.local_objs)
 
         rules = [
-            # rewriting 'eval(....)' - invocation
-            (r'(?<![$])\beval\s*\(', self.add_prefix('WB_wombat_runEval(function _____evalIsEvil(_______eval_arg$$) { return eval(_______eval_arg$$); }.bind(this)).'), 0),
+            # rewriting 'eval(...)' - invocation
+            (r'(?<!function\s)(?:^|[^,$])eval\s*\(', self.replace_str('WB_wombat_runEval(function _____evalIsEvil(_______eval_arg$$) { return eval(_______eval_arg$$); }.bind(this)).eval', 'eval'), 0),
             # rewriting 'x = eval' - no invocation
-            (r'(?<![$])\beval\b', self.add_prefix('WB_wombat_'), 0),
+            (r'(?<=[=,])\s*\beval\b\s*(?![(:.$])', self.replace_str('self.eval', 'eval'), 0),
             (r'(?<=\.)postMessage\b\(', self.add_prefix('__WB_pmw(self).'), 0),
             (r'(?<![$.])\s*location\b\s*[=]\s*(?![=])', self.add_suffix(check_loc), 0),
             # rewriting 'return this'
@@ -122,9 +123,9 @@ if (!self.__WB_pmw) {{ self.__WB_pmw = function(obj) {{ this.__WB_source = obj; 
 
         super(JSWombatProxyRules, self).__init__(rules)
 
-        self.first_buff = local_init_func + local_declares + '\n\n'
+        self.first_buff = local_init_func + local_declares + '\n\n{'
 
-        self.last_buff = '\n\n}'
+        self.last_buff = '\n\n}}'
 
 
 # =================================================================

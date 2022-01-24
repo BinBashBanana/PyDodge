@@ -138,9 +138,9 @@ r"""
 >>> parse('<meta http-equiv="Content-Security-Policy" content="default-src http://example.com" />')
 <meta http-equiv="Content-Security-Policy" _content="default-src http://example.com"/>
 
-# Custom -data attribs
+# Don't rewrite Custom -data attribs
 >>> parse('<div data-url="http://example.com/a/b/c.html" data-some-other-value="http://example.com/img.gif">')
-<div data-url="/web/20131226101010oe_/http://example.com/a/b/c.html" data-some-other-value="/web/20131226101010oe_/http://example.com/img.gif">
+<div data-url="http://example.com/a/b/c.html" data-some-other-value="http://example.com/img.gif">
 
 # param tag -- rewrite conditionally if url
 >>> parse('<param value="http://example.com/"/>')
@@ -394,7 +394,7 @@ r"""
 
 # parse attr with js proxy, rewrite location assignment
 >>> parse('<html><a href="javascript:location=\'foo.html\'"></a></html>', js_proxy=True)
-<html><a href="javascript:{ location=((self.__WB_check_loc && self.__WB_check_loc(location)) || {}).href = 'foo.html' }"></a></html>
+<html><a href="javascript:{ location=((self.__WB_check_loc && self.__WB_check_loc(location, arguments)) || {}).href = 'foo.html' }"></a></html>
 
 # parse attr with js proxy, assigning to location.href, no location assignment rewrite needed
 >>> parse('<html><a href="javascript:location.href=\'foo.html\'"></a></html>', js_proxy=True)

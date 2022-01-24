@@ -72,7 +72,8 @@ class RewriterApp(object):
 
         self.jinja_env.init_loc(self.config.get('locales_root_dir'),
                                 self.config.get('locales'),
-                                self.loc_map)
+                                self.loc_map,
+                                self.config.get('default_locale'))
 
         self.redirect_to_exact = config.get('redirect_to_exact')
 
@@ -88,13 +89,15 @@ class RewriterApp(object):
 
         self.error_view = BaseInsertView(self.jinja_env, self._html_templ('error_html'))
         self.not_found_view = BaseInsertView(self.jinja_env, self._html_templ('not_found_html'))
-        self.query_view = None
+        self.query_view = BaseInsertView(self.jinja_env, self._html_templ('query_html'))
 
         self.use_js_obj_proxy = config.get('use_js_obj_proxy', True)
 
         self.cookie_tracker = self._init_cookie_tracker()
 
         self.enable_memento = self.config.get('enable_memento')
+
+        self.static_prefix = self.config.get('static_prefix', 'static')
 
         csp_header = self.config.get('csp-header', self.DEFAULT_CSP)
         if csp_header:
@@ -300,15 +303,23 @@ class RewriterApp(object):
 
         return resp
 
-    def render_content(self, wb_url, kwargs, environ):
-        wb_url = wb_url.replace('#', '%23')
-        wb_url = WbUrl(wb_url)
+    def prepare_env(self, environ):
+        """ setup environ path prefixes and scheme """
+        if 'pywb.host_prefix' in environ:
+            return
 
-        # proto = environ.get('HTTP_X_FORWARDED_PROTO', self.force_scheme)
-        proto = "https"
+        proto = environ.get('HTTP_X_FORWARDED_PROTO', self.force_scheme)
 
         if proto:
             environ['wsgi.url_scheme'] = proto
+
+        environ['pywb.host_prefix'] = self.get_host_prefix(environ)
+        environ['pywb.app_prefix'] = environ.get('SCRIPT_NAME', '')
+        environ['pywb.static_prefix'] = environ['pywb.host_prefix'] + environ['pywb.app_prefix'] + '/' + self.static_prefix
+
+    def render_content(self, wb_url, kwargs, environ):
+        wb_url = wb_url.replace('#', '%23')
+        wb_url = WbUrl(wb_url)
 
         history_page = environ.pop('HTTP_X_WOMBAT_HISTORY_PAGE', '')
         if history_page:
@@ -319,19 +330,18 @@ class RewriterApp(object):
 
         is_timegate = self._check_accept_dt(wb_url, environ)
 
-        host_prefix = self.get_host_prefix(environ)
+        self.prepare_env(environ)
+
+        host_prefix = environ['pywb.host_prefix']
         rel_prefix = self.get_rel_prefix(environ)
         full_prefix = host_prefix + rel_prefix
-        environ['pywb.host_prefix'] = host_prefix
-        pywb_static_prefix = host_prefix + environ.get('pywb.app_prefix', '') + environ.get(
-            'pywb.static_prefix', '/static/')
+
+        pywb_static_prefix = environ['pywb.static_prefix'] + '/'
         is_proxy = ('wsgiprox.proxy_host' in environ)
 
         # if OPTIONS in proxy mode, just generate the proxy responss
         if is_proxy and self.is_preflight(environ):
             return WbResponse.options_response(environ)
-
-        environ['pywb.host_prefix'] = host_prefix
 
         if self.use_js_obj_proxy:
             content_rw = self.js_proxy_rw
@@ -685,7 +695,7 @@ class RewriterApp(object):
             return self._error_response(environ, wbe)
 
     def _not_found_response(self, environ, url):
-        resp = self.not_found_view.render_to_string(environ, url=url)
+        resp = self.not_found_view.render_to_string(environ, url=url, err_msg="Not Found")
 
         return WbResponse.text_response(resp, status='404 Not Found', content_type='text/html')
 
@@ -704,6 +714,8 @@ class RewriterApp(object):
 
         headers = {'Content-Length': str(len(req_data)),
                    'Content-Type': 'application/request'}
+
+        headers.update(inputreq.warcserver_headers)
 
         if skip_record:
             headers['Recorder-Skip'] = '1'
