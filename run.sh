@@ -1,1 +1,1 @@
-PORT=8070 uwsgi uwsgi.ini
+PORT=8080 uwsgi uwsgi.ini
