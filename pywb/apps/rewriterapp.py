@@ -308,7 +308,9 @@ class RewriterApp(object):
         if 'pywb.host_prefix' in environ:
             return
 
-        proto = environ.get('HTTP_X_FORWARDED_PROTO', self.force_scheme)
+        # proto = environ.get('HTTP_X_FORWARDED_PROTO', self.force_scheme)
+        # force_scheme MEANS FORCE SCHEME
+        proto = self.force_scheme
 
         if proto:
             environ['wsgi.url_scheme'] = proto
