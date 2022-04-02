@@ -213,9 +213,9 @@ import tempfile
 
 from pytest import raises
 
-
 TEST_CDX_DIR = get_test_dir() + 'cdx/'
 TEST_WARC_DIR = get_test_dir() + 'warcs/'
+
 
 def read_fully(cdx):
     with open(TEST_CDX_DIR + cdx, 'rb') as fh:
@@ -227,24 +227,29 @@ def read_fully(cdx):
             curr.write(b)
     return curr.getvalue()
 
+
 def cdx_index(warc, **options):
     buff = BytesIO()
 
     with open(TEST_WARC_DIR + warc, 'rb') as fh:
-        write_cdx_index(buff, fh,  warc, **options)
+        write_cdx_index(buff, fh, warc, **options)
 
     return buff.getvalue()
+
 
 def print_cdx_index(*args, **kwargs):
     sys.stdout.write(cdx_index(*args, **kwargs).decode('utf-8'))
 
+
 def assert_cdx_match(cdx, warc, sort=False):
     assert read_fully(cdx) == cdx_index(warc, sort=sort)
+
 
 def test_sorted_warc_gz():
     assert_cdx_match('example.cdx', 'example.warc.gz', sort=True)
     assert_cdx_match('dupes.cdx', 'dupes.warc.gz', sort=True)
     assert_cdx_match('iana.cdx', 'iana.warc.gz', sort=True)
+
 
 def cli_lines(cmds):
     buff = BytesIO()
@@ -258,6 +263,7 @@ def cli_lines(cmds):
     print(lines[1].decode('utf-8'))
     print(lines[-1].decode('utf-8'))
     print('Total: ' + str(len(lines)))
+
 
 def cli_lines_with_dir(input_):
     try:
@@ -327,12 +333,14 @@ com,example)/?example=1 20140103030341 {"url": "http://example.com?example=1", "
 org,iana)/domains/example 20140128051539 {"url": "http://www.iana.org/domains/example", "mime": "text/html", "status": "302", "digest": "JZ622UA23G5ZU6Y3XAKH4LINONUEICEG", "length": "577", "offset": "2907", "filename": "example.warc.gz"}
 """)
 
+
 def test_cdxj_arc():
     # arc.gz -- json
     res = cdx_index('example.arc.gz', cdxj=True)
     assert parse_cdxj(res) == parse_cdxj(b"""
 com,example)/ 20140216050221 {"url": "http://example.com/", "mime": "text/html", "status": "200", "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A", "length": "856", "offset": "171", "filename": "example.arc.gz"}
 """)
+
 
 def test_cdxj_arc_minimal():
     # arc.gz -- minimal + json
@@ -341,12 +349,14 @@ def test_cdxj_arc_minimal():
 com,example)/ 20140216050221 {"url": "http://example.com/", "digest": "PEWDX5GTH66WU74WBPGFECIYBMPMP3FP", "length": "856", "offset": "171", "filename": "example.arc.gz"}
 """)
 
+
 def test_cdxj_arc_conv():
     # arc.gz -- json
     res = cdx_index('example.arc.gz', cdxj=True, arc2warc=True)
     assert parse_cdxj(res) == parse_cdxj(b"""
 com,example)/ 20140216050221 {"url": "http://example.com/", "mime": "text/html", "status": "200", "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A", "length": "856", "offset": "171", "filename": "example.arc.gz"}
 """)
+
 
 def test_cdxj_arc_minimal_conv():
     # arc.gz -- minimal + json
@@ -356,8 +366,6 @@ com,example)/ 20140216050221 {"url": "http://example.com/", "digest": "PEWDX5GTH
 """)
 
 
-
-
 def test_cdxj_empty():
     options = dict(cdxj=True)
 
@@ -365,7 +373,7 @@ def test_cdxj_empty():
 
     empty = BytesIO()
 
-    write_cdx_index(buff, empty,  'empty.warc.gz', **options)
+    write_cdx_index(buff, empty, 'empty.warc.gz', **options)
 
     assert buff.getvalue() == b''
 
@@ -414,7 +422,7 @@ ABCD\r\n\
 
     test_record = BytesIO(test_data)
 
-    write_cdx_index(buff, test_record,  'test.warc.gz', **options)
+    write_cdx_index(buff, test_record, 'test.warc.gz', **options)
 
     assert buff.getvalue() == b"""\
  CDX N b a m s k r M S V g
@@ -449,6 +457,7 @@ Content-Length: 4\r\n\
 ABCD\r\n\
 \r\n\
 '
+
     options = dict(include_all=True)
 
     buff = BytesIO()
@@ -502,6 +511,7 @@ Content-Disposition: form-data; name="q"\r\n\
 ------WebKitFormBoundaryWUBf9liofZK0nuJd--\r\n\
 \r\n\
 '
+
     options = dict(include_all=True, append_post=True)
     buff = BytesIO()
     test_record = BytesIO(test_data)
@@ -550,6 +560,7 @@ Content-Type: multipart/form-data\r\n\
 {"text": "default"}\r\n\
 \r\n\
 '
+
     options = dict(include_all=True, append_post=True)
     buff = BytesIO()
     test_record = BytesIO(test_data)

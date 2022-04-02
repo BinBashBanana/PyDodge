@@ -73,7 +73,6 @@ org,iana)/time-zones 20140126200737 http://www.iana.org/time-zones text/html 200
 
 """
 
-
 #=================================================================
 import os
 from pywb.utils.binsearch import iter_prefix, iter_exact, iter_range
@@ -84,16 +83,20 @@ from pywb import get_test_dir
 #test_cdx_dir = os.path.dirname(os.path.realpath(__file__)) + '/../sample-data/'
 test_cdx_dir = get_test_dir() + 'cdx/'
 
+
 def print_binsearch_results(key, iter_func):
     with open(test_cdx_dir + 'iana.cdx', 'rb') as cdx:
         for line in iter_func(cdx, key.encode('utf-8')):
             print(line.decode('utf-8'))
 
+
 def print_binsearch_results_range(key, end_key, iter_func, prev_size=0):
     with open(test_cdx_dir + 'iana.cdx', 'rb') as cdx:
-        for line in iter_func(cdx, key.encode('utf-8'), end_key.encode('utf-8'), prev_size=prev_size):
+        for line in iter_func(cdx,
+                              key.encode('utf-8'),
+                              end_key.encode('utf-8'),
+                              prev_size=prev_size):
             print(line.decode('utf-8'))
-
 
 
 def test_rev_merge():
@@ -103,16 +106,12 @@ def test_rev_merge():
     with open(test_cdx_dir + 'dupes.cdx', 'rb') as cdx:
         lines2 = cdx.readlines()
 
-
     # check reverse merge: verify merging of lists, than reversing
     # eqauls merging with reverse=True of reversed lists
-    assert (list(reversed(list(merge(lines1, lines2)))) ==
-            list(merge(reversed(lines1), reversed(lines2), reverse=True)))
-
+    assert (list(reversed(list(merge(lines1, lines2)))) == list(
+        merge(reversed(lines1), reversed(lines2), reverse=True)))
 
 
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
-

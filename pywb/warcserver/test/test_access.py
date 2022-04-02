@@ -13,8 +13,10 @@ TEST_EXCL_PATH = to_path(get_test_dir() + '/access/')
 
 # ============================================================================
 class TestAccess(TempDirTests, BaseTestClass):
+
     def test_allows_only_default_block(self):
-        agg = SimpleAggregator({'source': FileAccessIndexSource(TEST_EXCL_PATH + 'allows.aclj')})
+        agg = SimpleAggregator(
+            {'source': FileAccessIndexSource(TEST_EXCL_PATH + 'allows.aclj')})
         access = AccessChecker(agg, default_access='block')
 
         edx = access.find_access_rule('http://example.net')
@@ -38,7 +40,8 @@ class TestAccess(TempDirTests, BaseTestClass):
         assert edx['access'] == 'block'
 
     def test_blocks_only(self):
-        agg = SimpleAggregator({'source': FileAccessIndexSource(TEST_EXCL_PATH + 'blocks.aclj')})
+        agg = SimpleAggregator(
+            {'source': FileAccessIndexSource(TEST_EXCL_PATH + 'blocks.aclj')})
         access = AccessChecker(agg)
 
         edx = access.find_access_rule('https://example.com/foo')
@@ -66,7 +69,8 @@ class TestAccess(TempDirTests, BaseTestClass):
         assert edx['access'] == 'allow'
 
     def test_single_file_combined(self):
-        agg = SimpleAggregator({'source': FileAccessIndexSource(TEST_EXCL_PATH + 'list1.aclj')})
+        agg = SimpleAggregator(
+            {'source': FileAccessIndexSource(TEST_EXCL_PATH + 'list1.aclj')})
         access = AccessChecker(agg, default_access='block')
 
         edx = access.find_access_rule('http://example.com/abc/page.html')
@@ -132,7 +136,8 @@ class TestAccess(TempDirTests, BaseTestClass):
         assert edx['access'] == 'exclude'
 
         # exact-only match, first line in *.aclj file
-        edx = access.find_access_rule('https://www.iana.org/exact/match/first/line/aclj/')
+        edx = access.find_access_rule(
+            'https://www.iana.org/exact/match/first/line/aclj/')
         assert edx['urlkey'] == 'org,iana)/exact/match/first/line/aclj###'
         assert edx['access'] == 'allow'
 

@@ -1,6 +1,3 @@
-
-
-
 r'''
 >>> parse('<html><head><some-tag></head</html>')
 '<html><head><!--Insert--><some-tag></head</html>'
@@ -28,8 +25,10 @@ r'''
 from pywb.rewrite.url_rewriter import UrlRewriter
 from pywb.rewrite.html_insert_rewriter import HTMLInsertOnlyRewriter
 
+
 def parse(html_text, is_ajax=False):
-    urlrewriter = UrlRewriter('20131226101010/https://example.com/some/path.html', '/web/')
+    urlrewriter = UrlRewriter(
+        '20131226101010/https://example.com/some/path.html', '/web/')
 
     if is_ajax:
         urlrewriter.rewrite_opts['is_ajax'] = True
@@ -37,4 +36,3 @@ def parse(html_text, is_ajax=False):
     rewriter = HTMLInsertOnlyRewriter(urlrewriter, head_insert='<!--Insert-->')
 
     return rewriter.rewrite(html_text) + rewriter.final_read()
-

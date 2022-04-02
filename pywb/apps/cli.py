@@ -1,4 +1,6 @@
-from gevent.monkey import patch_all; patch_all()
+from gevent.monkey import patch_all
+
+patch_all()
 from argparse import ArgumentParser
 
 import logging
@@ -14,8 +16,7 @@ def get_version():
 #=============================================================================
 def warcserver(args=None):
     """Utility function for starting pywb's WarcServer"""
-    return WarcServerCli(args=args,
-                         default_port=8070,
+    return WarcServerCli(args=args, default_port=8070,
                          desc='pywb WarcServer').run()
 
 
@@ -47,32 +48,58 @@ class BaseCli(object):
         :param str desc: The description for the application to be started
         """
         parser = ArgumentParser(description=desc)
-        parser.add_argument("-V", "--version", action="version", version=get_version())
+        parser.add_argument("-V",
+                            "--version",
+                            action="version",
+                            version=get_version())
 
-        parser.add_argument('-p', '--port', type=int, default=default_port,
-                            help='Port to listen on (default %s)' % default_port)
-        parser.add_argument('-b', '--bind', default='0.0.0.0',
+        parser.add_argument('-p',
+                            '--port',
+                            type=int,
+                            default=default_port,
+                            help='Port to listen on (default %s)' %
+                            default_port)
+        parser.add_argument('-b',
+                            '--bind',
+                            default='0.0.0.0',
                             help='Address to listen on (default 0.0.0.0)')
-        parser.add_argument('-t', '--threads', type=int, default=4,
+        parser.add_argument('-t',
+                            '--threads',
+                            type=int,
+                            default=4,
                             help='Number of threads to use (default 4)')
-        parser.add_argument('--debug', action='store_true',
+        parser.add_argument('--debug',
+                            action='store_true',
                             help='Enable debug mode')
-        parser.add_argument('--profile', action='store_true',
+        parser.add_argument('--profile',
+                            action='store_true',
                             help='Enable profile mode')
-        parser.add_argument('--live', action='store_true',
+        parser.add_argument('--live',
+                            action='store_true',
                             help='Add live-web handler at /live')
-        parser.add_argument('--record', action='store_true',
+        parser.add_argument('--record',
+                            action='store_true',
                             help='Enable recording from the live web')
         parser.add_argument('--proxy',
                             help='Enable HTTP/S proxy on specified collection')
-        parser.add_argument('-pt', '--proxy-default-timestamp',
-                            help='Default timestamp / ISO date to use for proxy requests')
-        parser.add_argument('--proxy-record', action='store_true',
-                            help='Enable proxy recording into specified collection')
-        parser.add_argument('--proxy-enable-wombat', action='store_true',
-                            help='Enable partial wombat JS overrides support in proxy mode')
-        parser.add_argument('--enable-auto-fetch', action='store_true',
-                            help='Enable auto-fetch worker to capture resources from stylesheets, <img srcset> when running in live/recording mode')
+        parser.add_argument(
+            '-pt',
+            '--proxy-default-timestamp',
+            help='Default timestamp / ISO date to use for proxy requests')
+        parser.add_argument(
+            '--proxy-record',
+            action='store_true',
+            help='Enable proxy recording into specified collection')
+        parser.add_argument(
+            '--proxy-enable-wombat',
+            action='store_true',
+            help='Enable partial wombat JS overrides support in proxy mode')
+        parser.add_argument(
+            '--enable-auto-fetch',
+            action='store_true',
+            help=
+            'Enable auto-fetch worker to capture resources from stylesheets, <img srcset> when running in live/recording mode'
+        )
 
         self.desc = desc
         self.extra_config = {}
@@ -81,8 +108,9 @@ class BaseCli(object):
 
         self.r = parser.parse_args(args)
 
-        logging.basicConfig(format='%(asctime)s: [%(levelname)s]: %(message)s',
-                            level=logging.DEBUG if self.r.debug else logging.INFO)
+        logging.basicConfig(
+            format='%(asctime)s: [%(levelname)s]: %(message)s',
+            level=logging.DEBUG if self.r.debug else logging.INFO)
         if self.r.proxy:
             self.extra_config['proxy'] = {
                 'coll': self.r.proxy,
@@ -112,8 +140,7 @@ class BaseCli(object):
         """This method is called to load the application. Subclasses must return a application
         that can be used by used by pywb.utils.geventserver.GeventServer."""
         if self.r.live:
-            self.extra_config['collections'] = {'live':
-                    {'index': '$live'}}
+            self.extra_config['collections'] = {'live': {'index': '$live'}}
 
         if self.r.debug:
             self.extra_config['debug'] = True
@@ -142,14 +169,18 @@ class ReplayCli(BaseCli):
     """CLI class that adds the cli functionality specific to starting pywb's Wayback Machine implementation"""
 
     def _extend_parser(self, parser):
-        parser.add_argument('-a', '--autoindex', action='store_true',
+        parser.add_argument('-a',
+                            '--autoindex',
+                            action='store_true',
                             help='Enable auto-indexing')
-        parser.add_argument('--auto-interval', type=int, default=30,
+        parser.add_argument('--auto-interval',
+                            type=int,
+                            default=30,
                             help='Auto-indexing interval (default 30 seconds)')
 
         parser.add_argument('--all-coll', help='Set "all" collection')
 
-        help_dir='Specify root archive dir (default is current working directory)'
+        help_dir = 'Specify root archive dir (default is current working directory)'
         parser.add_argument('-d', '--directory', help=help_dir)
 
     def load(self):

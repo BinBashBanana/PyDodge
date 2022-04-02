@@ -22,26 +22,27 @@ class PywbHttpAdapter(HTTPAdapter):
         self.ca_cert_dir = ca_cert_dir
         return super(PywbHttpAdapter, self).__init__(**init_kwargs)
 
-    def init_poolmanager(
-        self, connections, maxsize, block=DEFAULT_POOLBLOCK, **pool_kwargs
-    ):
+    def init_poolmanager(self,
+                         connections,
+                         maxsize,
+                         block=DEFAULT_POOLBLOCK,
+                         **pool_kwargs):
         self._pool_connections = connections
         self._pool_maxsize = maxsize
         self._pool_block = block
-        self.poolmanager = PoolManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            strict=True,
-            cert_reqs=self.cert_reqs,
-            ca_cert_dir=self.ca_cert_dir,
-            **pool_kwargs
-        )
+        self.poolmanager = PoolManager(num_pools=connections,
+                                       maxsize=maxsize,
+                                       block=block,
+                                       strict=True,
+                                       cert_reqs=self.cert_reqs,
+                                       ca_cert_dir=self.ca_cert_dir,
+                                       **pool_kwargs)
 
     def proxy_manager_for(self, proxy, **proxy_kwargs):
         proxy_kwargs['cert_reqs'] = self.cert_reqs
         proxy_kwargs['ca_cert_dir'] = self.ca_cert_dir
-        return super(PywbHttpAdapter, self).proxy_manager_for(proxy, **proxy_kwargs)
+        return super(PywbHttpAdapter,
+                     self).proxy_manager_for(proxy, **proxy_kwargs)
 
 
 # =============================================================================
@@ -51,4 +52,3 @@ class DefaultAdapters(object):
 
 
 requests.packages.urllib3.disable_warnings()
-

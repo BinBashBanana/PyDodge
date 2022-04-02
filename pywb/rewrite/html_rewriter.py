@@ -7,7 +7,6 @@ import sys
 from six.moves.html_parser import HTMLParser
 from six.moves.urllib.parse import urljoin, urlsplit, urlunsplit
 
-
 from pywb.rewrite.url_rewriter import UrlRewriter
 from pywb.rewrite.regex_rewriters import JSRewriter, CSSRewriter
 
@@ -30,7 +29,6 @@ except:
 
     BaseContentRewriter.set_unescape(__unescape)
 
-
 try:
     import _markupbase as markupbase
 except:
@@ -51,39 +49,99 @@ class HTMLRewriterMixin(StreamingRewriter):
     @staticmethod
     def _init_rewrite_tags(defmod):
         rewrite_tags = {
-            'a':       {'href': defmod},
-            'applet':  {'codebase': 'oe_',
-                        'archive': 'oe_'},
-            'area':    {'href': defmod},
-            'audio':   {'src': 'oe_'},
-            'base':    {'href': defmod},
-            'blockquote': {'cite': defmod},
-            'body':    {'background': 'im_'},
-            'button':  {'formaction': defmod},
-            'command': {'icon': 'im_'},
-            'del':     {'cite': defmod},
-            'embed':   {'src': 'oe_'},
-            'head':    {'': defmod},  # for head rewriting
-            'iframe':  {'src': 'if_'},
-            'image':   {'src': 'im_', 'xlink:href': 'im_', 'href': 'im_'},
-            'img':     {'src': 'im_',
-                        'srcset': 'im_'},
-            'ins':     {'cite': defmod},
-            'input':   {'src': 'im_',
-                        'formaction': defmod},
-            'form':    {'action': defmod},
-            'frame':   {'src': 'fr_'},
-            'link':    {'href': 'oe_'},
-            'meta':    {'content': defmod},
-            'object':  {'codebase': 'oe_',
-                        'data': 'oe_'},
-            'param':   {'value': 'oe_'},
-            'q':       {'cite': defmod},
-            'ref':     {'href': 'oe_'},
-            'script':  {'src': 'js_', 'xlink:href': 'js_'},  # covers both HTML and SVG script tags
-            'source':  {'src': 'oe_', 'srcset': 'oe_'},
-            'video':   {'src': 'oe_',
-                        'poster': 'im_'},
+            'a': {
+                'href': defmod
+            },
+            'applet': {
+                'codebase': 'oe_',
+                'archive': 'oe_'
+            },
+            'area': {
+                'href': defmod
+            },
+            'audio': {
+                'src': 'oe_'
+            },
+            'base': {
+                'href': defmod
+            },
+            'blockquote': {
+                'cite': defmod
+            },
+            'body': {
+                'background': 'im_'
+            },
+            'button': {
+                'formaction': defmod
+            },
+            'command': {
+                'icon': 'im_'
+            },
+            'del': {
+                'cite': defmod
+            },
+            'embed': {
+                'src': 'oe_'
+            },
+            'head': {
+                '': defmod
+            },  # for head rewriting
+            'iframe': {
+                'src': 'if_'
+            },
+            'image': {
+                'src': 'im_',
+                'xlink:href': 'im_',
+                'href': 'im_'
+            },
+            'img': {
+                'src': 'im_',
+                'srcset': 'im_'
+            },
+            'ins': {
+                'cite': defmod
+            },
+            'input': {
+                'src': 'im_',
+                'formaction': defmod
+            },
+            'form': {
+                'action': defmod
+            },
+            'frame': {
+                'src': 'fr_'
+            },
+            'link': {
+                'href': 'oe_'
+            },
+            'meta': {
+                'content': defmod
+            },
+            'object': {
+                'codebase': 'oe_',
+                'data': 'oe_'
+            },
+            'param': {
+                'value': 'oe_'
+            },
+            'q': {
+                'cite': defmod
+            },
+            'ref': {
+                'href': 'oe_'
+            },
+            'script': {
+                'src': 'js_',
+                'xlink:href': 'js_'
+            },  # covers both HTML and SVG script tags
+            'source': {
+                'src': 'oe_',
+                'srcset': 'oe_'
+            },
+            'video': {
+                'src': 'oe_',
+                'poster': 'im_'
+            },
         }
 
         return rewrite_tags
@@ -109,6 +167,7 @@ class HTMLRewriterMixin(StreamingRewriter):
 
     #===========================
     class AccumBuff:
+
         def __init__(self):
             self.ls = []
 
@@ -118,15 +177,15 @@ class HTMLRewriterMixin(StreamingRewriter):
         def getvalue(self):
             return ''.join(self.ls)
 
-
     # ===========================
-    def __init__(self, url_rewriter,
+    def __init__(self,
+                 url_rewriter,
                  head_insert=None,
                  js_rewriter_class=None,
                  js_rewriter=None,
                  css_rewriter=None,
                  css_rewriter_class=None,
-                 url = '',
+                 url='',
                  defmod='',
                  parse_comments=False,
                  charset='utf-8'):
@@ -170,13 +229,15 @@ class HTMLRewriterMixin(StreamingRewriter):
 
     ADD_WINDOW = re.compile('(?<![.])(WB_wombat_)')
 
-    SRCSET_REGEX = re.compile('\s*(\S*\s+[\d\.]+[wx]),|(?:\s*,(?:\s+|(?=https?:)))')
+    SRCSET_REGEX = re.compile(
+        '\s*(\S*\s+[\d\.]+[wx]),|(?:\s*,(?:\s+|(?=https?:)))')
 
     def _rewrite_srcset(self, value, mod=''):
         if not value:
             return ''
 
-        values = (url.strip() for url in re.split(self.SRCSET_REGEX, value) if url)
+        values = (url.strip() for url in re.split(self.SRCSET_REGEX, value)
+                  if url)
         values = [self._rewrite_url(v.strip()) for v in values]
         return ', '.join(values)
 
@@ -254,7 +315,6 @@ class HTMLRewriterMixin(StreamingRewriter):
         if not value:
             return ''
 
-
         orig_value = value
 
         # if not utf-8, then stream was encoded as iso-8859-1, and need to reencode
@@ -266,7 +326,8 @@ class HTMLRewriterMixin(StreamingRewriter):
                 pass
 
         unesc_value = self.try_unescape(value)
-        rewritten_value = self.url_rewriter.rewrite(unesc_value, mod, force_abs)
+        rewritten_value = self.url_rewriter.rewrite(unesc_value, mod,
+                                                    force_abs)
 
         # if no rewriting has occured, ensure we return original, not reencoded value
         if rewritten_value == value:
@@ -346,9 +407,8 @@ class HTMLRewriterMixin(StreamingRewriter):
         :rtype: bool
         """
         # special case: head insertion, before-head tags
-        if (self.head_insert and
-              not self._wb_parse_context
-              and (tag not in self.BEFORE_HEAD_TAGS)):
+        if (self.head_insert and not self._wb_parse_context
+                and (tag not in self.BEFORE_HEAD_TAGS)):
             self.out.write(self.head_insert)
             self.head_insert = None
 
@@ -370,7 +430,7 @@ class HTMLRewriterMixin(StreamingRewriter):
 
             # special case: inline JS/event handler
             if ((attr_value and attr_value.startswith('javascript:'))
-                 or attr_name.startswith('on') and attr_name[2:3] != '-'):
+                    or attr_name.startswith('on') and attr_name[2:3] != '-'):
                 attr_value = self._rewrite_script(attr_value, True)
 
             # special case: inline CSS/style attribute
@@ -396,13 +456,15 @@ class HTMLRewriterMixin(StreamingRewriter):
             # don't rewrite rel=canonical
             elif tag == 'link' and attr_name == 'href':
                 rw_mod = handler.get(attr_name)
-                attr_value = self._rewrite_link_href(attr_value, tag_attrs, rw_mod)
+                attr_value = self._rewrite_link_href(attr_value, tag_attrs,
+                                                     rw_mod)
 
             # special case: meta tag
             elif (tag == 'meta') and (attr_name == 'content'):
                 if self.has_attr(tag_attrs, ('http-equiv', 'refresh')):
                     attr_value = self._rewrite_meta_refresh(attr_value)
-                elif self.has_attr(tag_attrs, ('http-equiv', 'content-security-policy')):
+                elif self.has_attr(tag_attrs,
+                                   ('http-equiv', 'content-security-policy')):
                     attr_name = '_' + attr_name
                 elif self.has_attr(tag_attrs, ('name', 'referrer')):
                     attr_value = 'no-referrer-when-downgrade'
@@ -429,7 +491,8 @@ class HTMLRewriterMixin(StreamingRewriter):
                 rw_mod = handler.get(attr_name)
                 ov = attr_value
                 attr_value = self._rewrite_url(attr_value, rw_mod)
-                if attr_value == ov and not ov.startswith(self.url_rewriter.NO_REWRITE_URI_PREFIX):
+                if attr_value == ov and not ov.startswith(
+                        self.url_rewriter.NO_REWRITE_URI_PREFIX):
                     # URL not skipped, likely src='js/....', forcing abs to make sure, cause PHP MIME(JS) === HTML
                     attr_value = self._rewrite_url(attr_value, rw_mod, True)
                     self._write_attr('__wb_orig_src', ov, empty_attr=None)
@@ -524,7 +587,8 @@ class HTMLRewriterMixin(StreamingRewriter):
         # write with value, if set
         elif value:
 
-            self.out.write(' ' + name + '="' + value.replace('"', '&quot;') + '"')
+            self.out.write(' ' + name + '="' + value.replace('"', '&quot;') +
+                           '"')
 
         # otherwise, 'attr=""' is more common, so use that form
         else:
@@ -581,7 +645,7 @@ class HTMLRewriter(HTMLRewriterMixin, HTMLParser):
     PARSETAG = re.compile('[<]')
 
     def __init__(self, *args, **kwargs):
-        if sys.version_info > (3,4):  #pragma: no cover
+        if sys.version_info > (3, 4):  #pragma: no cover
             HTMLParser.__init__(self, convert_charrefs=False)
         else:  #pragma: no cover
             HTMLParser.__init__(self)

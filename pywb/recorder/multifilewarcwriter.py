@@ -16,8 +16,13 @@ from pywb.utils.io import no_except_close
 class MultiFileWARCWriter(BaseWARCWriter):
     FILE_TEMPLATE = 'rec-{timestamp}-{hostname}.warc.gz'
 
-    def __init__(self, dir_template, filename_template=None, max_size=0,
-                 max_idle_secs=1800, *args, **kwargs):
+    def __init__(self,
+                 dir_template,
+                 filename_template=None,
+                 max_size=0,
+                 max_idle_secs=1800,
+                 *args,
+                 **kwargs):
         super(MultiFileWARCWriter, self).__init__(*args, **kwargs)
 
         if not filename_template:
@@ -49,9 +54,11 @@ class MultiFileWARCWriter(BaseWARCWriter):
 
         try:
             url = record.rec_headers.get_header('WARC-Target-URI')
-            digest = record.rec_headers.get_header('WARC-Payload-Digest') if not self.dedup_by_url else None
+            digest = record.rec_headers.get_header(
+                'WARC-Payload-Digest') if not self.dedup_by_url else None
             iso_dt = record.rec_headers.get_header('WARC-Date')
-            result = self.dedup_index.lookup_revisit(params, digest, url, iso_dt)
+            result = self.dedup_index.lookup_revisit(params, digest, url,
+                                                     iso_dt)
         except Exception as e:
             traceback.print_exc()
             result = None
@@ -60,8 +67,12 @@ class MultiFileWARCWriter(BaseWARCWriter):
             return None
 
         if isinstance(result, tuple) and result[0] == 'revisit':
-            record = self.create_revisit_record(url, digest, result[1], result[2],
-                                                http_headers=record.http_headers)
+            record = self.create_revisit_record(
+                url,
+                digest,
+                result[1],
+                result[2],
+                http_headers=record.http_headers)
 
         return record
 
@@ -70,7 +81,8 @@ class MultiFileWARCWriter(BaseWARCWriter):
 
         randstr = base64.b32encode(os.urandom(5)).decode('utf-8')
 
-        filename = dir_ + res_template(self.filename_template, params,
+        filename = dir_ + res_template(self.filename_template,
+                                       params,
                                        hostname=self.hostname,
                                        timestamp=timestamp,
                                        random=randstr)
@@ -163,6 +175,7 @@ class MultiFileWARCWriter(BaseWARCWriter):
         return self._write_to_file(params, write_callback)
 
     def write_stream_to_file(self, params, stream):
+
         def write_callback(out, filename):
             #print('Writing stream to {0}'.format(filename))
             shutil.copyfileobj(stream, out)
@@ -204,8 +217,7 @@ class MultiFileWARCWriter(BaseWARCWriter):
             out.seek(start)
 
             if self.dedup_index:
-                self.dedup_index.add_urls_to_index(out, params,
-                                                   filename,
+                self.dedup_index.add_urls_to_index(out, params, filename,
                                                    new_size - start)
 
             return True
@@ -227,7 +239,8 @@ class MultiFileWARCWriter(BaseWARCWriter):
 
             elif is_new:
                 if os.name != 'nt':
-                    portalocker.lock(out, portalocker.LOCK_EX | portalocker.LOCK_NB)
+                    portalocker.lock(out,
+                                     portalocker.LOCK_EX | portalocker.LOCK_NB)
                 self.fh_cache[dir_key] = (out, filename)
 
     def iter_open_files(self):
@@ -263,7 +276,7 @@ class MultiFileWARCWriter(BaseWARCWriter):
 
 # ============================================================================
 class PerRecordWARCWriter(MultiFileWARCWriter):
+
     def __init__(self, *args, **kwargs):
         kwargs['max_size'] = 1
         super(PerRecordWARCWriter, self).__init__(*args, **kwargs)
-

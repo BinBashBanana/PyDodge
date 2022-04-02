@@ -10,7 +10,7 @@ else:  #pragma: no cover
 
     def _heappop_max(heap):
         """Maxheap version of a heappop."""
-        lastelt = heap.pop()    # raises appropriate IndexError if heap is empty
+        lastelt = heap.pop()  # raises appropriate IndexError if heap is empty
         if heap:
             returnitem = heap[0]
             heap[0] = lastelt
@@ -20,7 +20,7 @@ else:  #pragma: no cover
 
     def _heapreplace_max(heap, item):
         """Maxheap version of a heappop followed by a heappush."""
-        returnitem = heap[0]    # raises appropriate IndexError if heap is empty
+        returnitem = heap[0]  # raises appropriate IndexError if heap is empty
         heap[0] = item
         _siftup_max(heap, 0)
         return returnitem
@@ -73,10 +73,10 @@ else:  #pragma: no cover
                     while True:
                         value, order, next = s = h[0]
                         yield value
-                        s[0] = next()           # raises StopIteration when exhausted
-                        _heapreplace(h, s)      # restore heap condition
+                        s[0] = next()  # raises StopIteration when exhausted
+                        _heapreplace(h, s)  # restore heap condition
                 except StopIteration:
-                    _heappop(h)                 # remove empty iterator
+                    _heappop(h)  # remove empty iterator
             if h:
                 # fast case when only a single iterator remains
                 value, order, next = h[0]
@@ -110,5 +110,3 @@ else:  #pragma: no cover
             yield value
             for v in next.__self__:
                 yield v
-
-

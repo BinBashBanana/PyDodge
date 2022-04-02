@@ -159,7 +159,6 @@ True
 '//example.com/abc'
 """
 
-
 from pywb.rewrite.url_rewriter import UrlRewriter, SchemeOnlyUrlRewriter
 from six.moves.urllib.parse import quote_plus, unquote_plus
 

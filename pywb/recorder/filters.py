@@ -6,6 +6,7 @@ import re
 # Header Exclusions
 # ============================================================================
 class ExcludeSpecificHeaders(object):
+
     def __init__(self, exclude_headers=None):
         self.exclude_headers = [x.lower() for x in exclude_headers]
 
@@ -25,8 +26,7 @@ class ExcludeHttpOnlyCookieHeaders(object):
         if name == 'cookie':
             return None
 
-        if (name == 'set-cookie' and
-            self.HTTPONLY_RX.search(header[1])):
+        if (name == 'set-cookie' and self.HTTPONLY_RX.search(header[1])):
             return None
 
         return header
@@ -36,6 +36,7 @@ class ExcludeHttpOnlyCookieHeaders(object):
 # Revisit Policy
 # ============================================================================
 class WriteRevisitDupePolicy(object):
+
     def __call__(self, cdx, params):
         dt = timestamp_to_datetime(cdx['timestamp'])
         return ('revisit', cdx['url'], datetime_to_iso_date(dt))
@@ -43,6 +44,7 @@ class WriteRevisitDupePolicy(object):
 
 # ============================================================================
 class SkipDupePolicy(object):
+
     def __call__(self, cdx, params):
         if cdx['url'] == params['url']:
             return 'skip'
@@ -52,6 +54,7 @@ class SkipDupePolicy(object):
 
 # ============================================================================
 class WriteDupePolicy(object):
+
     def __call__(self, cdx, params):
         return 'write'
 
@@ -60,6 +63,7 @@ class WriteDupePolicy(object):
 # Skip Record Filters
 # ============================================================================
 class SkipDefaultFilter(object):
+
     def skip_request(self, path, req_headers):
         if req_headers.get('Recorder-Skip') == '1':
             return True
@@ -75,6 +79,7 @@ class SkipDefaultFilter(object):
 
 # ============================================================================
 class CollectionFilter(SkipDefaultFilter):
+
     def __init__(self, accept_colls):
         self.rx_accept_map = {}
 
@@ -104,9 +109,9 @@ class CollectionFilter(SkipDefaultFilter):
 
 # ============================================================================
 class SkipRangeRequestFilter(SkipDefaultFilter):
+
     def skip_request(self, path, req_headers):
-        if super(SkipRangeRequestFilter, self).skip_request(path,
-                                                            req_headers):
+        if super(SkipRangeRequestFilter, self).skip_request(path, req_headers):
             return True
 
         range_ = req_headers.get('Range')
@@ -114,5 +119,3 @@ class SkipRangeRequestFilter(SkipDefaultFilter):
             return True
 
         return False
-
-

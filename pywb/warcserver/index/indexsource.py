@@ -113,7 +113,11 @@ class FileIndexSource(BaseIndexSource):
 class RemoteIndexSource(BaseIndexSource):
     CDX_MATCH_RX = re.compile('^cdxj?\+(?P<url>https?\:.*)')
 
-    def __init__(self, api_url, replay_url, url_field='load_url', closest_limit=100):
+    def __init__(self,
+                 api_url,
+                 replay_url,
+                 url_field='load_url',
+                 closest_limit=100):
         self.api_url = api_url
         self.replay_url = replay_url
         self.url_field = url_field
@@ -140,6 +144,7 @@ class RemoteIndexSource(BaseIndexSource):
             raise NotFoundException(api_url)
 
         lines = r.content.strip().split(b'\n')
+
         def do_load(lines):
             for line in lines:
                 if not line:
@@ -157,12 +162,14 @@ class RemoteIndexSource(BaseIndexSource):
         if name:
             source_coll = params.get('param.' + name + '.src_coll', '')
 
-        cdx[self.url_field] = res_template(self.replay_url, dict(url=cdx['url'],
-                                                     timestamp=cdx['timestamp'],
-                                                     src_coll=source_coll))
+        cdx[self.url_field] = res_template(
+            self.replay_url,
+            dict(url=cdx['url'],
+                 timestamp=cdx['timestamp'],
+                 src_coll=source_coll))
+
     def __repr__(self):
-        return '{0}({1}, {2})'.format(self.__class__.__name__,
-                                      self.api_url,
+        return '{0}({1}, {2})'.format(self.__class__.__name__, self.api_url,
                                       self.replay_url)
 
     def __str__(self):
@@ -172,8 +179,8 @@ class RemoteIndexSource(BaseIndexSource):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.api_url == other.api_url and
-                self.replay_url == other.replay_url)
+        return (self.api_url == other.api_url
+                and self.replay_url == other.replay_url)
 
     @classmethod
     def init_from_string(cls, value):
@@ -193,8 +200,9 @@ class RemoteIndexSource(BaseIndexSource):
         if not coll and url.endswith('-cdx'):
             replay = url[:-4] + '/' + cls.WAYBACK_ORIG_SUFFIX
         else:
-        # add specified coll, if any
-            replay = url.rsplit('/', 1)[0] + coll + '/' + cls.WAYBACK_ORIG_SUFFIX
+            # add specified coll, if any
+            replay = url.rsplit('/',
+                                1)[0] + coll + '/' + cls.WAYBACK_ORIG_SUFFIX
 
         url += '?url={url}&closest={closest}&sort=closest'
 
@@ -243,7 +251,8 @@ class XmlQueryIndexSource(BaseIndexSource):
         elif matchType == 'prefix':
             query = self.PREFIX_QUERY
         else:
-            raise BadRequestException('matchType={0} is not supported'.format(matchType=matchType))
+            raise BadRequestException(
+                'matchType={0} is not supported'.format(matchType=matchType))
 
         try:
             limit = params.get('limit')
@@ -252,7 +261,8 @@ class XmlQueryIndexSource(BaseIndexSource):
 
             # OpenSearch API requires double-escaping
             # TODO: add option to not double escape if needed
-            query_url = self.query_api_url + '?q=' + quote_plus(query + quote_plus(url))
+            query_url = self.query_api_url + '?q=' + quote_plus(
+                query + quote_plus(url))
             self.logger.debug("Running query: %s" % query_url)
             response = self.session.get(query_url)
             response.raise_for_status()
@@ -364,6 +374,7 @@ class XmlQueryIndexSource(BaseIndexSource):
 
 # =============================================================================
 class LiveIndexSource(BaseIndexSource):
+
     def __init__(self):
         self._init_sesh(DefaultAdapters.live_adapter)
 
@@ -431,7 +442,12 @@ class LiveIndexSource(BaseIndexSource):
 
 #=============================================================================
 class RedisIndexSource(BaseIndexSource):
-    def __init__(self, redis_url=None, redis=None, key_template=None, **kwargs):
+
+    def __init__(self,
+                 redis_url=None,
+                 redis=None,
+                 key_template=None,
+                 **kwargs):
         if redis_url:
             redis, key_template = self.parse_redis_url(redis_url, redis)
 
@@ -452,7 +468,8 @@ class RedisIndexSource(BaseIndexSource):
 
         redis_key_template = key_prefix
         if not redis_:
-            redis_ = redis.StrictRedis.from_url(redis_url, decode_responses=True)
+            redis_ = redis.StrictRedis.from_url(redis_url,
+                                                decode_responses=True)
         return redis_, key_prefix
 
     def scan_keys(self, match_templ, params, member_key=None):
@@ -496,8 +513,7 @@ class RedisIndexSource(BaseIndexSource):
 
     def load_key_index(self, key_template, params):
         z_key = res_template(key_template, params)
-        index_list = self.redis.zrangebylex(z_key,
-                                            b'[' + params['key'],
+        index_list = self.redis.zrangebylex(z_key, b'[' + params['key'],
                                             b'(' + params['end_key'])
 
         def do_load(index_list):
@@ -510,8 +526,7 @@ class RedisIndexSource(BaseIndexSource):
 
     def __repr__(self):
         return '{0}({1}, {2}, {3})'.format(self.__class__.__name__,
-                                           self.redis_url,
-                                           self.redis,
+                                           self.redis_url, self.redis,
                                            self.redis_key_template)
 
     def __str__(self):
@@ -521,8 +536,8 @@ class RedisIndexSource(BaseIndexSource):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.redis_key_template == other.redis_key_template and
-                self.redis == other.redis)
+        return (self.redis_key_template == other.redis_key_template
+                and self.redis == other.redis)
 
     @classmethod
     def init_from_string(cls, value):
@@ -539,6 +554,7 @@ class RedisIndexSource(BaseIndexSource):
 
 #=============================================================================
 class MementoIndexSource(BaseIndexSource):
+
     def __init__(self, timegate_url, timemap_url, replay_url):
         self.timegate_url = timegate_url
         self.timemap_url = timemap_url
@@ -607,7 +623,7 @@ class MementoIndexSource(BaseIndexSource):
                                 timeout=params.get('_timeout'))
 
             res.raise_for_status()
-            assert(res.text)
+            assert (res.text)
 
         except Exception as e:
             no_except_close(res)
@@ -637,8 +653,7 @@ class MementoIndexSource(BaseIndexSource):
 
     def __repr__(self):
         return '{0}({1}, {2}, {3})'.format(self.__class__.__name__,
-                                           self.timegate_url,
-                                           self.timemap_url,
+                                           self.timegate_url, self.timemap_url,
                                            self.replay_url)
 
     @classmethod
@@ -652,9 +667,9 @@ class MementoIndexSource(BaseIndexSource):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.timegate_url == other.timegate_url and
-                self.timemap_url == other.timemap_url and
-                self.replay_url == other.replay_url)
+        return (self.timegate_url == other.timegate_url
+                and self.timemap_url == other.timemap_url
+                and self.replay_url == other.replay_url)
 
     @classmethod
     def init_from_string(cls, value):
@@ -666,14 +681,12 @@ class MementoIndexSource(BaseIndexSource):
         if value.startswith(('http://', 'https://')):
             return cls.from_timegate_url(value, 'link')
 
-
     @classmethod
     def init_from_config(cls, config):
         if config['type'] != cls._init_id():
             return
 
-        return cls(config['timegate_url'],
-                   config['timemap_url'],
+        return cls(config['timegate_url'], config['timemap_url'],
                    config['replay_url'])
 
 
@@ -683,7 +696,8 @@ class WBMementoIndexSource(MementoIndexSource):
     WAYBACK_ORIG_SUFFIX = '{timestamp}im_/{url}'
 
     def __init__(self, timegate_url, timemap_url, replay_url):
-        super(WBMementoIndexSource, self).__init__(timegate_url, timemap_url, replay_url)
+        super(WBMementoIndexSource, self).__init__(timegate_url, timemap_url,
+                                                   replay_url)
         self.prefix = replay_url.split('{', 1)[0]
 
     def _get_referrer(self, params):
@@ -736,7 +750,8 @@ class WBMementoIndexSource(MementoIndexSource):
             if res.status_code >= 300:
                 info = self._extract_location(url, res.headers.get('Location'))
             else:
-                info = self._extract_location(url, res.headers.get('Content-Location'))
+                info = self._extract_location(
+                    url, res.headers.get('Content-Location'))
 
             url, timestamp, load_url = info
 

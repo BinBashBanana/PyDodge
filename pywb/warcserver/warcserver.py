@@ -25,17 +25,17 @@ from six import iteritems, iterkeys, itervalues
 from six.moves import zip
 import os
 
-
-SOURCE_LIST = [LiveIndexSource,
-               XmlQueryIndexSource,
-               WBMementoIndexSource,
-               RedisMultiKeyIndexSource,
-               MementoIndexSource,
-               CacheDirectoryIndexSource,
-               FileIndexSource,
-               RemoteIndexSource,
-               ZipNumIndexSource,
-              ]
+SOURCE_LIST = [
+    LiveIndexSource,
+    XmlQueryIndexSource,
+    WBMementoIndexSource,
+    RedisMultiKeyIndexSource,
+    MementoIndexSource,
+    CacheDirectoryIndexSource,
+    FileIndexSource,
+    RemoteIndexSource,
+    ZipNumIndexSource,
+]
 
 
 # ============================================================================
@@ -49,7 +49,8 @@ class WarcServer(BaseWarcServer):
 
         if config_file:
             try:
-                file_config = load_overlay_config('PYWB_CONFIG_FILE', config_file)
+                file_config = load_overlay_config('PYWB_CONFIG_FILE',
+                                                  config_file)
                 config.update(file_config)
             except Exception as e:
                 if not custom_config:
@@ -63,7 +64,9 @@ class WarcServer(BaseWarcServer):
                 custom_config['proxy'].update(config['proxy'])
             if 'recorder' in custom_config and 'recorder' in config:
                 if isinstance(custom_config['recorder'], str):
-                    custom_config['recorder'] = {'source_coll': custom_config['recorder']}
+                    custom_config['recorder'] = {
+                        'source_coll': custom_config['recorder']
+                    }
 
                 if isinstance(config['recorder'], str):
                     config['recorder'] = {'source_coll': config['recorder']}
@@ -77,10 +80,15 @@ class WarcServer(BaseWarcServer):
         self.config = config
 
         recorder_config = self.config.get('recorder') or {}
-        if isinstance(recorder_config, dict) and recorder_config.get('dedup_policy'):
-            self.dedup_index_url = recorder_config.get('dedup_index_url', WarcServer.DEFAULT_DEDUP_URL)
-            if self.dedup_index_url and not self.dedup_index_url.startswith('redis://'):
-                raise Exception("The dedup_index_url must start with \"redis://\". Only Redis-based dedup index is supported at this time.")
+        if isinstance(recorder_config,
+                      dict) and recorder_config.get('dedup_policy'):
+            self.dedup_index_url = recorder_config.get(
+                'dedup_index_url', WarcServer.DEFAULT_DEDUP_URL)
+            if self.dedup_index_url and not self.dedup_index_url.startswith(
+                    'redis://'):
+                raise Exception(
+                    "The dedup_index_url must start with \"redis://\". Only Redis-based dedup index is supported at this time."
+                )
         else:
             self.dedup_index_url = None
 
@@ -95,12 +103,14 @@ class WarcServer(BaseWarcServer):
 
         if 'certificates' in self.config:
             certs_config = self.config['certificates']
-            DefaultAdapters.live_adapter = PywbHttpAdapter(max_retries=Retry(3),
-                                                           cert_reqs=certs_config.get('cert_reqs', 'CERT_NONE'),
-                                                           ca_cert_dir=certs_config.get('ca_cert_dir'))
-            DefaultAdapters.remote_adapter = PywbHttpAdapter(max_retries=Retry(3),
-                                                             cert_reqs=certs_config.get('cert_reqs', 'CERT_NONE'),
-                                                             ca_cert_dir=certs_config.get('ca_cert_dir'))
+            DefaultAdapters.live_adapter = PywbHttpAdapter(
+                max_retries=Retry(3),
+                cert_reqs=certs_config.get('cert_reqs', 'CERT_NONE'),
+                ca_cert_dir=certs_config.get('ca_cert_dir'))
+            DefaultAdapters.remote_adapter = PywbHttpAdapter(
+                max_retries=Retry(3),
+                cert_reqs=certs_config.get('cert_reqs', 'CERT_NONE'),
+                ca_cert_dir=certs_config.get('ca_cert_dir'))
 
         self.auto_handler = None
 
@@ -111,12 +121,17 @@ class WarcServer(BaseWarcServer):
 
         for name, route in iteritems(self.fixed_routes):
             if route == self.auto_handler:
-                self.add_route('/' + name, route, path_param_name='param.coll', default_value='*')
+                self.add_route('/' + name,
+                               route,
+                               path_param_name='param.coll',
+                               default_value='*')
             else:
                 self.add_route('/' + name, route)
 
         if self.auto_handler:
-            self.add_route('/<path_param_value>', self.auto_handler, path_param_name='param.coll')
+            self.add_route('/<path_param_value>',
+                           self.auto_handler,
+                           path_param_name='param.coll')
 
     def init_paths(self, name, abs_path=None):
         templ = self.config.get(name)
@@ -142,19 +157,25 @@ class WarcServer(BaseWarcServer):
                                                base_dir=self.index_paths,
                                                config=self.config)
 
-        access_checker = AccessChecker(CacheDirectoryAccessSource(base_prefix=self.root_dir,
-                                                                  base_dir=self.acl_paths,
-                                                                  config=self.config),
-                                       self.default_access)
+        access_checker = AccessChecker(
+            CacheDirectoryAccessSource(base_prefix=self.root_dir,
+                                       base_dir=self.acl_paths,
+                                       config=self.config),
+            self.default_access)
 
         if self.dedup_index_url:
-            source = SimpleAggregator({'dedup': RedisMultiKeyIndexSource(self.dedup_index_url),
-                                       'dir': dir_source})
+            source = SimpleAggregator({
+                'dedup':
+                RedisMultiKeyIndexSource(self.dedup_index_url),
+                'dir':
+                dir_source
+            })
 
         else:
             source = dir_source
 
-        return DefaultResourceHandler(source, self.archive_paths,
+        return DefaultResourceHandler(source,
+                                      self.archive_paths,
                                       rules_file=self.rules_file,
                                       access_checker=access_checker)
 
@@ -217,7 +238,8 @@ class WarcServer(BaseWarcServer):
                 index = coll_config.get('index_paths')
             archive_paths = coll_config.get('archive_paths')
             acl_paths = coll_config.get('acl_paths')
-            default_access = coll_config.get('default_access', self.default_access)
+            default_access = coll_config.get('default_access',
+                                             self.default_access)
             embargo = coll_config.get('embargo')
 
         else:
@@ -250,7 +272,8 @@ class WarcServer(BaseWarcServer):
         if acl_paths or embargo:
             access_checker = AccessChecker(acl_paths, default_access, embargo)
 
-        return DefaultResourceHandler(agg, archive_paths,
+        return DefaultResourceHandler(agg,
+                                      archive_paths,
                                       rules_file=self.rules_file,
                                       access_checker=access_checker)
 
@@ -269,6 +292,7 @@ class WarcServer(BaseWarcServer):
             handlers.append(handler)
 
         return HandlerSeq(handlers)
+
 
 # ============================================================================
 def init_index_source(value, source_list=None):
@@ -300,7 +324,10 @@ def register_source(source_cls, end=False):
 
 
 # ============================================================================
-def init_index_agg(source_configs, use_gevent=False, timeout=0, source_list=None):
+def init_index_agg(source_configs,
+                   use_gevent=False,
+                   timeout=0,
+                   source_list=None):
     sources = {}
     for n, v in iteritems(source_configs):
         sources[n] = init_index_source(v, source_list=source_list)
@@ -309,5 +336,3 @@ def init_index_agg(source_configs, use_gevent=False, timeout=0, source_list=None
         return GeventTimeoutAggregator(sources, timeout=timeout)
     else:
         return SimpleAggregator(sources)
-
-

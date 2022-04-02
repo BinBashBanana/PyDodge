@@ -5,18 +5,20 @@ from six import iteritems
 from six.moves.urllib.parse import urlsplit
 import re
 
-
-try: # pragma: no cover
+try:  # pragma: no cover
     import brotli
     has_brotli = True
 except Exception:  # pragma: no cover
     has_brotli = False
-    print('Warning: brotli module could not be loaded, will not be able to replay brotli-encoded content')
+    print(
+        'Warning: brotli module could not be loaded, will not be able to replay brotli-encoded content'
+    )
 
 
 #=============================================================================
 class RewriteInputRequest(DirectWSGIInputRequest):
-    RANGE_ARG_RX = re.compile('.*.googlevideo.com/videoplayback.*([&?]range=(\d+)-(\d+))')
+    RANGE_ARG_RX = re.compile(
+        '.*.googlevideo.com/videoplayback.*([&?]range=(\d+)-(\d+))')
 
     RANGE_HEADER = re.compile('bytes=(\d+)-(\d+)?')
 
@@ -80,7 +82,8 @@ class RewriteInputRequest(DirectWSGIInputRequest):
             elif name in ('HTTP_CONNECTION', 'HTTP_PROXY_CONNECTION'):
                 continue
 
-            elif name in ('HTTP_IF_MODIFIED_SINCE', 'HTTP_IF_UNMODIFIED_SINCE'):
+            elif name in ('HTTP_IF_MODIFIED_SINCE',
+                          'HTTP_IF_UNMODIFIED_SINCE'):
                 continue
 
             elif name == 'HTTP_X_PYWB_ACL_USER':
@@ -97,7 +100,8 @@ class RewriteInputRequest(DirectWSGIInputRequest):
                 # if brotli not available, remove 'br' from accept-encoding to avoid
                 # capture brotli encoded content
                 name = 'Accept-Encoding'
-                value = ','.join([enc for enc in value.split(',') if enc.strip() != 'br'])
+                value = ','.join(
+                    [enc for enc in value.split(',') if enc.strip() != 'br'])
 
             elif name.startswith('HTTP_'):
                 name = name[5:].title().replace('_', '-')
@@ -112,7 +116,8 @@ class RewriteInputRequest(DirectWSGIInputRequest):
                 headers[name] = value
 
         if self.extra_cookie:
-            headers['Cookie'] = self.extra_cookie + ';' + headers.get('Cookie', '')
+            headers['Cookie'] = self.extra_cookie + ';' + headers.get(
+                'Cookie', '')
 
         return headers
 
@@ -151,4 +156,3 @@ class RewriteInputRequest(DirectWSGIInputRequest):
 
         result = (url, start, end, use_206)
         return result
-

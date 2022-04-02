@@ -15,6 +15,7 @@ import json
 
 #=============================================================================
 class DirectWSGIInputRequest(object):
+
     def __init__(self, env):
         self.env = env
 
@@ -87,9 +88,12 @@ class DirectWSGIInputRequest(object):
 
         buffered_stream = BytesIO()
 
-        query = MethodQueryCanonicalizer(method, mime, length, stream,
-                                           buffered_stream=buffered_stream,
-                                           environ=self.env)
+        query = MethodQueryCanonicalizer(method,
+                                         mime,
+                                         length,
+                                         stream,
+                                         buffered_stream=buffered_stream,
+                                         environ=self.env)
 
         new_url = query.append_query(url)
         if new_url != url:
@@ -147,6 +151,7 @@ class DirectWSGIInputRequest(object):
 
 #=============================================================================
 class POSTInputRequest(DirectWSGIInputRequest):
+
     def __init__(self, env):
         self.env = env
 
@@ -185,9 +190,13 @@ class MethodQueryCanonicalizer(object):
     #MAX_POST_SIZE = 16384
     MAX_QUERY_LENGTH = 4096
 
-    def __init__(self, method, mime, length, stream,
-                       buffered_stream=None,
-                       environ=None):
+    def __init__(self,
+                 method,
+                 mime,
+                 length,
+                 stream,
+                 buffered_stream=None,
+                 environ=None):
         """
         Append the method for HEAD/OPTIONS as __pywb_method=<method>
         For POST requests, requests extract a url-encoded form from stream
@@ -247,13 +256,13 @@ class MethodQueryCanonicalizer(object):
                 query = handle_binary(query)
 
         elif mime.startswith('multipart/'):
-            env = {'REQUEST_METHOD': 'POST',
-                   'CONTENT_TYPE': mime,
-                   'CONTENT_LENGTH': len(query)}
+            env = {
+                'REQUEST_METHOD': 'POST',
+                'CONTENT_TYPE': mime,
+                'CONTENT_LENGTH': len(query)
+            }
 
-            args = dict(fp=BytesIO(query),
-                        environ=env,
-                        keep_blank_values=True)
+            args = dict(fp=BytesIO(query), environ=env, keep_blank_values=True)
 
             if PY3:
                 args['encoding'] = 'utf-8'
@@ -315,7 +324,7 @@ class MethodQueryCanonicalizer(object):
                 dupes[n] = 1
 
             dupes[n] += 1
-            return n + "." + str(dupes[n]) + "_";
+            return n + "." + str(dupes[n]) + "_"
 
         def _parser(dict_var):
             for n, v in dict_var.items():

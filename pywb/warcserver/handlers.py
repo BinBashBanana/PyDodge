@@ -6,12 +6,11 @@ from warcio.recordloader import ArchiveLoadFailed
 
 from pywb.warcserver.index.cdxobject import CDXException
 from pywb.warcserver.index.fuzzymatcher import FuzzyMatcher
-from pywb.warcserver.resource.responseloader import  WARCPathLoader, LiveWebLoader, VideoLoader
+from pywb.warcserver.resource.responseloader import WARCPathLoader, LiveWebLoader, VideoLoader
 
 import six
 import logging
 import traceback
-
 
 logger = logging.getLogger('warcserver')
 
@@ -21,13 +20,16 @@ def to_cdxj(cdx_iter, fields, params):
     content_type = 'text/x-cdxj'
     return content_type, (cdx.to_cdxj(fields) for cdx in cdx_iter)
 
+
 def to_json(cdx_iter, fields, params):
     content_type = 'text/x-ndjson'
     return content_type, (cdx.to_json(fields) for cdx in cdx_iter)
 
+
 def to_text(cdx_iter, fields, params):
     content_type = 'text/plain'
     return content_type, (cdx.to_text(fields) for cdx in cdx_iter)
+
 
 def to_link(cdx_iter, fields, params):
     content_type = 'application/link-format'
@@ -57,7 +59,8 @@ class IndexHandler(object):
     def _load_index_source(self, params):
         url = params.get('url')
         if not url:
-            errs = dict(last_exc=BadRequestException('The "url" param is required'))
+            errs = dict(
+                last_exc=BadRequestException('The "url" param is required'))
             return None, errs
 
         input_req = params.get('_input_req')
@@ -91,7 +94,8 @@ class IndexHandler(object):
 
         handler = self.OUTPUTS.get(output)
         if not handler:
-            errs = dict(last_exc=BadRequestException('output={0} not supported'.format(output)))
+            errs = dict(last_exc=BadRequestException(
+                'output={0} not supported'.format(output)))
             return None, None, errs
 
         cdx_iter = None
@@ -130,6 +134,7 @@ class IndexHandler(object):
 
 #=============================================================================
 class ResourceHandler(IndexHandler):
+
     def __init__(self, index_source, resource_loaders, **kwargs):
         super(ResourceHandler, self).__init__(index_source, **kwargs)
         self.resource_loaders = resource_loaders
@@ -151,8 +156,12 @@ class ResourceHandler(IndexHandler):
 
         for cdx in cdx_iter:
             if cdx.get('access', 'allow') != 'allow':
-                raise AccessException(msg={'access': cdx['access'],
-                                           'access_status': cdx.get('access_status', 451)},
+                raise AccessException(msg={
+                    'access':
+                    cdx['access'],
+                    'access_status':
+                    cdx.get('access_status', 451)
+                },
                                       url=cdx['url'])
 
             for loader in self.resource_loaders:
@@ -174,17 +183,24 @@ class ResourceHandler(IndexHandler):
 
 #=============================================================================
 class DefaultResourceHandler(ResourceHandler):
-    def __init__(self, index_source, warc_paths='', forward_proxy_prefix='',
+
+    def __init__(self,
+                 index_source,
+                 warc_paths='',
+                 forward_proxy_prefix='',
                  **kwargs):
-        loaders = [WARCPathLoader(warc_paths, index_source),
-                   LiveWebLoader(forward_proxy_prefix),
-                   VideoLoader()
-                  ]
-        super(DefaultResourceHandler, self).__init__(index_source, loaders, **kwargs)
+        loaders = [
+            WARCPathLoader(warc_paths, index_source),
+            LiveWebLoader(forward_proxy_prefix),
+            VideoLoader()
+        ]
+        super(DefaultResourceHandler, self).__init__(index_source, loaders,
+                                                     **kwargs)
 
 
 #=============================================================================
 class HandlerSeq(object):
+
     def __init__(self, handlers):
         self.handlers = handlers
 
@@ -203,5 +219,3 @@ class HandlerSeq(object):
                 return out_headers, res, all_errs
 
         return None, None, all_errs
-
-

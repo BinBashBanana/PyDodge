@@ -21,11 +21,17 @@ from pywb.utils.wbexception import NotFoundException
 
 
 # ============================================================================
-def to_json_list(cdxlist, fields=['timestamp', 'load_url', 'filename', 'source']):
+def to_json_list(cdxlist,
+                 fields=['timestamp', 'load_url', 'filename', 'source']):
     return list([json.loads(cdx.to_json(fields)) for cdx in cdxlist])
 
+
 def key_ts_res(cdxlist, extra='filename'):
-    return '\n'.join([cdx['urlkey'] + ' ' + cdx['timestamp'] + ' ' + cdx[extra] for cdx in cdxlist])
+    return '\n'.join([
+        cdx['urlkey'] + ' ' + cdx['timestamp'] + ' ' + cdx[extra]
+        for cdx in cdxlist
+    ])
+
 
 def to_path(path):
     if os.path.sep != '/':
@@ -41,6 +47,7 @@ TEST_WARC_PATH = to_path(get_test_dir() + '/warcs/')
 
 # ============================================================================
 class BaseTestClass(object):
+
     @classmethod
     def setup_class(cls):
         pass
@@ -53,7 +60,9 @@ class BaseTestClass(object):
 # ============================================================================
 PUBSUBS = []
 
+
 class FakeStrictRedisSharedPubSub(FakeStrictRedis):
+
     def __init__(self, *args, **kwargs):
         super(FakeStrictRedisSharedPubSub, self).__init__(*args, **kwargs)
         self._pubsubs = PUBSUBS
@@ -61,6 +70,7 @@ class FakeStrictRedisSharedPubSub(FakeStrictRedis):
 
 # ============================================================================
 class FakeRedisTests(object):
+
     @classmethod
     def setup_class(cls, redis_url='redis://localhost:6379/2'):
         super(FakeRedisTests, cls).setup_class()
@@ -88,6 +98,7 @@ class FakeRedisTests(object):
 
 # ============================================================================
 class TempDirTests(object):
+
     @classmethod
     def setup_class(cls, *args, **kwargs):
         super(TempDirTests, cls).setup_class(*args, **kwargs)
@@ -110,13 +121,16 @@ class MementoOverrideTests(object):
 
         # Load expected link headers
         MementoOverrideTests.link_header_data = None
-        with open(to_path(get_test_dir() + '/text_content/link_headers.yaml')) as fh:
-            MementoOverrideTests.link_header_data = yaml.load(fh, Loader=yaml.Loader)
+        with open(to_path(get_test_dir() +
+                          '/text_content/link_headers.yaml')) as fh:
+            MementoOverrideTests.link_header_data = yaml.load(
+                fh, Loader=yaml.Loader)
 
         MementoOverrideTests.orig_get_timegate_links = MementoIndexSource.get_timegate_links
 
     @classmethod
     def mock_link_header(cls, test_name, load=False):
+
         def mock_func(self, params, closest):
             if load:
                 res = cls.orig_get_timegate_links(self, params, closest)
@@ -139,6 +153,7 @@ class MementoOverrideTests(object):
 
 # ============================================================================
 class LiveServerTests(object):
+
     @classmethod
     def setup_class(cls):
         super(LiveServerTests, cls).setup_class()
@@ -147,11 +162,10 @@ class LiveServerTests(object):
     @staticmethod
     def make_live_app():
         app = BaseWarcServer()
-        app.add_route('/live',
-            DefaultResourceHandler(SimpleAggregator(
-                                   {'live': LiveIndexSource()})
-            )
-        )
+        app.add_route(
+            '/live',
+            DefaultResourceHandler(
+                SimpleAggregator({'live': LiveIndexSource()})))
         return app
 
     @classmethod
@@ -162,6 +176,7 @@ class LiveServerTests(object):
 
 # ============================================================================
 class HttpBinLiveTests(object):
+
     @classmethod
     def setup_class(cls, *args, **kwargs):
         super(HttpBinLiveTests, cls).setup_class(*args, **kwargs)
@@ -170,16 +185,22 @@ class HttpBinLiveTests(object):
         httpbin_app.config.update(JSONIFY_PRETTYPRINT_REGULAR=True)
         cls.httpbin_server = GeventServer(httpbin_app)
 
-        httpbin_local = 'http://localhost:' + str(cls.httpbin_server.port) + '/'
+        httpbin_local = 'http://localhost:' + str(
+            cls.httpbin_server.port) + '/'
         cls.httpbin_local = httpbin_local
 
         def get_load_url(self, params):
-            params['url'] = params['url'].replace('http://test.httpbin.org/', httpbin_local)
-            params['url'] = params['url'].replace('http://httpbin.org/', httpbin_local)
-            params['url'] = params['url'].replace('https://httpbin.org/', httpbin_local)
+            params['url'] = params['url'].replace('http://test.httpbin.org/',
+                                                  httpbin_local)
+            params['url'] = params['url'].replace('http://httpbin.org/',
+                                                  httpbin_local)
+            params['url'] = params['url'].replace('https://httpbin.org/',
+                                                  httpbin_local)
             return params['url']
 
-        cls.indexmock = patch('pywb.warcserver.index.indexsource.LiveIndexSource.get_load_url', get_load_url)
+        cls.indexmock = patch(
+            'pywb.warcserver.index.indexsource.LiveIndexSource.get_load_url',
+            get_load_url)
         cls.indexmock.start()
 
     @classmethod
@@ -191,6 +212,3 @@ class HttpBinLiveTests(object):
         cls.indexmock.stop()
         cls.httpbin_server.stop()
         super(HttpBinLiveTests, cls).teardown_class()
-
-
-

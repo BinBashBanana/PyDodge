@@ -4,6 +4,7 @@ import string
 
 # ============================================================================
 class ParamFormatter(string.Formatter):
+
     def __init__(self, params, name='', prefix='param.'):
         self.params = params
         self.prefix = prefix
@@ -81,5 +82,3 @@ def query_to_dict(query_str, multi=None):
             obj[n] = [obj[n], v]
 
     return obj
-
-

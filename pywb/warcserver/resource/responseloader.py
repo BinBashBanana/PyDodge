@@ -9,14 +9,9 @@ import six
 from requests.models import PreparedRequest
 from six.moves.urllib.parse import quote, unquote, urlsplit
 from warcio.statusandheaders import StatusAndHeaders, StatusAndHeadersParser
-from warcio.timeutils import (
-    datetime_to_http_date,
-    datetime_to_iso_date,
-    datetime_to_timestamp,
-    http_date_to_datetime,
-    iso_date_to_datetime,
-    timestamp_to_datetime
-)
+from warcio.timeutils import (datetime_to_http_date, datetime_to_iso_date,
+                              datetime_to_timestamp, http_date_to_datetime,
+                              iso_date_to_datetime, timestamp_to_datetime)
 from warcio.utils import to_native_str
 
 from pywb.utils.canonicalize import canonicalize
@@ -33,6 +28,7 @@ logger = logging.getLogger('warcserver')
 
 #=============================================================================
 class BaseLoader(object):
+
     def __call__(self, cdx, params):
         entry = self.load_resource(cdx, params)
         if not entry:
@@ -58,7 +54,8 @@ class BaseLoader(object):
         if not warc_headers:
             if other_headers:
                 out_headers['Link'] = other_headers.get('Link')
-                out_headers['Memento-Datetime'] = other_headers.get('Memento-Datetime')
+                out_headers['Memento-Datetime'] = other_headers.get(
+                    'Memento-Datetime')
                 if not compress:
                     known_length = other_headers.get('Content-Length')
                     if known_length:
@@ -132,7 +129,6 @@ class BaseLoader(object):
         if not location_url:
             return
 
-
         location_url = location_url.lower()
         if location_url.startswith('/'):
             host = urlsplit(cdx['url']).netloc
@@ -166,6 +162,7 @@ class BaseLoader(object):
 
 #=============================================================================
 class WARCPathLoader(DefaultResolverMixin, BaseLoader):
+
     def __init__(self, paths, cdx_source):
         self.paths = paths
 
@@ -200,10 +197,8 @@ class WARCPathLoader(DefaultResolverMixin, BaseLoader):
                 yield cdx
 
         failed_files = []
-        headers, payload = (self.resolve_loader.
-                             load_headers_and_payload(cdx,
-                                                      failed_files,
-                                                      local_index_query))
+        headers, payload = (self.resolve_loader.load_headers_and_payload(
+            cdx, failed_files, local_index_query))
 
         http_headers_buff = None
         if payload.rec_type in ('response', 'revisit'):
@@ -219,9 +214,9 @@ class WARCPathLoader(DefaultResolverMixin, BaseLoader):
                     orig_size = 0
 
                 try:
-                    self.raise_on_self_redirect(params, cdx,
-                                                http_headers.get_statuscode(),
-                                                http_headers.get_header('Location'))
+                    self.raise_on_self_redirect(
+                        params, cdx, http_headers.get_statuscode(),
+                        http_headers.get_header('Location'))
                 except LiveResourceException:
                     no_except_close(headers.raw_stream)
                     no_except_close(payload.raw_stream)
@@ -234,42 +229,44 @@ class WARCPathLoader(DefaultResolverMixin, BaseLoader):
                 if orig_size and len(http_headers_buff) != orig_size:
                     orig_cl = payload.rec_headers.get_header('Content-Length')
                     if orig_cl:
-                        new_cl = int(orig_cl) + (len(http_headers_buff) - orig_size)
-                        payload.rec_headers.replace_header('Content-Length', str(new_cl))
+                        new_cl = int(orig_cl) + (len(http_headers_buff) -
+                                                 orig_size)
+                        payload.rec_headers.replace_header(
+                            'Content-Length', str(new_cl))
 
         warc_headers = payload.rec_headers
 
         if headers != payload:
-            warc_headers.replace_header('WARC-Refers-To-Target-URI',
-                     payload.rec_headers.get_header('WARC-Target-URI'))
+            warc_headers.replace_header(
+                'WARC-Refers-To-Target-URI',
+                payload.rec_headers.get_header('WARC-Target-URI'))
 
-            warc_headers.replace_header('WARC-Refers-To-Date',
-                     payload.rec_headers.get_header('WARC-Date'))
+            warc_headers.replace_header(
+                'WARC-Refers-To-Date',
+                payload.rec_headers.get_header('WARC-Date'))
 
-            warc_headers.replace_header('WARC-Target-URI',
-                     headers.rec_headers.get_header('WARC-Target-URI'))
+            warc_headers.replace_header(
+                'WARC-Target-URI',
+                headers.rec_headers.get_header('WARC-Target-URI'))
 
-            warc_headers.replace_header('WARC-Date',
-                     headers.rec_headers.get_header('WARC-Date'))
+            warc_headers.replace_header(
+                'WARC-Date', headers.rec_headers.get_header('WARC-Date'))
             no_except_close(headers.raw_stream)
 
         return (warc_headers, http_headers_buff, payload.raw_stream)
 
     def __str__(self):
-        return  'WARCPathLoader'
+        return 'WARCPathLoader'
 
 
 #=============================================================================
 class LiveWebLoader(BaseLoader):
-    SKIP_HEADERS = ('link',
-                    'memento-datetime',
-                    'content-location',
+    SKIP_HEADERS = ('link', 'memento-datetime', 'content-location',
                     'x-archive')
 
     UNREWRITE_HEADERS = ('location', 'content-location')
 
-    VIDEO_MIMES = ('application/x-mpegURL',
-                   'application/vnd.apple.mpegurl',
+    VIDEO_MIMES = ('application/x-mpegURL', 'application/vnd.apple.mpegurl',
                    'application/dash+xml')
 
     def __init__(self, forward_proxy_prefix=None, adapter=None):
@@ -278,7 +275,8 @@ class LiveWebLoader(BaseLoader):
         socks_host = os.environ.get('SOCKS_HOST')
         socks_port = os.environ.get('SOCKS_PORT', 9050)
         if socks_host and socks_port:
-            self.socks_proxy = 'socks5h://{0}:{1}'.format(socks_host, socks_port)
+            self.socks_proxy = 'socks5h://{0}:{1}'.format(
+                socks_host, socks_port)
         else:
             self.socks_proxy = None
 
@@ -332,23 +330,23 @@ class LiveWebLoader(BaseLoader):
             if referrer:
                 req_headers['Referer'] = referrer
 
-        upstream_res = self._do_request_with_redir_check(method, load_url,
-                                                         data, req_headers,
-                                                         params, cdx)
+        upstream_res = self._do_request_with_redir_check(
+            method, load_url, data, req_headers, params, cdx)
 
         memento_dt = upstream_res.headers.get('Memento-Datetime')
         if memento_dt:
             dt = http_date_to_datetime(memento_dt)
             cdx['timestamp'] = datetime_to_timestamp(dt)
         elif cdx.get('memento_url'):
-        # if 'memento_url' set and no Memento-Datetime header present
-        # then its an error
+            # if 'memento_url' set and no Memento-Datetime header present
+            # then its an error
             no_except_close(upstream_res)
             return None
 
         agg_type = upstream_res.headers.get('Warcserver-Type')
         if agg_type == 'warc':
-            cdx['source'] = unquote(upstream_res.headers.get('Warcserver-Source-Coll'))
+            cdx['source'] = unquote(
+                upstream_res.headers.get('Warcserver-Source-Coll'))
             return None, upstream_res.headers, upstream_res
 
         if upstream_res.version == 11:
@@ -366,7 +364,7 @@ class LiveWebLoader(BaseLoader):
         orig_resp = upstream_res._original_response
 
         try:  #pragma: no cover
-        #PY 3
+            #PY 3
             resp_headers = orig_resp.headers._headers
             for n, v in resp_headers:
                 nl = n.lower()
@@ -389,7 +387,7 @@ class LiveWebLoader(BaseLoader):
                 http_headers_buff = http_headers_buff.encode('latin-1')
 
         except:  #pragma: no cover
-        #PY 2
+            #PY 2
             resp_headers = orig_resp.msg.headers
 
             for line in resp_headers:
@@ -448,8 +446,7 @@ class LiveWebLoader(BaseLoader):
         else:
             content_len = upstream_res.headers.get('Content-Length', -1)
 
-        self._set_content_len(content_len,
-                              warc_headers,
+        self._set_content_len(content_len, warc_headers,
                               len(http_headers_buff))
 
         warc_headers = StatusAndHeaders('WARC/1.0', warc_headers.items())
@@ -468,12 +465,11 @@ class LiveWebLoader(BaseLoader):
 
         return value[inx + 1:]
 
-    def _do_request_with_redir_check(self, method, load_url,
-                                     data, req_headers, params, cdx):
+    def _do_request_with_redir_check(self, method, load_url, data, req_headers,
+                                     params, cdx):
 
-        upstream_res = self._do_request(method, load_url,
-                                        data, req_headers, params,
-                                        cdx.get('is_live'))
+        upstream_res = self._do_request(method, load_url, data, req_headers,
+                                        params, cdx.get('is_live'))
 
         if cdx.get('is_live'):
             return upstream_res
@@ -483,9 +479,9 @@ class LiveWebLoader(BaseLoader):
         while True:
             try:
                 location = upstream_res.headers.get('Location')
-                self.raise_on_self_redirect(params, cdx,
-                                            str(upstream_res.status),
-                                            self.unrewrite_header(cdx, location))
+                self.raise_on_self_redirect(
+                    params, cdx, str(upstream_res.status),
+                    self.unrewrite_header(cdx, location))
 
                 break
 
@@ -495,12 +491,14 @@ class LiveWebLoader(BaseLoader):
 
                 load_url = location
                 upstream_res = self._do_request(method, load_url, data,
-                                                req_headers, params, cdx.get('is_live'))
+                                                req_headers, params,
+                                                cdx.get('is_live'))
                 self_redir_count += 1
 
         return upstream_res
 
-    def _do_request(self, method, load_url, data, req_headers, params, is_live):
+    def _do_request(self, method, load_url, data, req_headers, params,
+                    is_live):
         adapter = DefaultAdapters.live_adapter if is_live else DefaultAdapters.remote_adapter
         max_retries = adapter.max_retries
 
@@ -531,17 +529,20 @@ class LiveWebLoader(BaseLoader):
             if logger.isEnabledFor(logging.DEBUG):
                 import traceback
                 traceback.print_exc()
-                logger.debug('FAILED: ' + method + ' ' + load_url + ': ' + str(e))
+                logger.debug('FAILED: ' + method + ' ' + load_url + ': ' +
+                             str(e))
 
             raise LiveResourceException(load_url)
 
     def get_custom_metadata(self, content_type, dt):
         if content_type in self.VIDEO_MIMES:
-            return {'adaptive_max_resolution': 1280 * 720,
-                    'adaptive_max_bandwidth': 2000000}
+            return {
+                'adaptive_max_resolution': 1280 * 720,
+                'adaptive_max_bandwidth': 2000000
+            }
 
     def __str__(self):
-        return  'LiveWebLoader'
+        return 'LiveWebLoader'
 
 
 #=============================================================================
@@ -555,8 +556,10 @@ class VideoLoader(BaseLoader):
             self.ydl = None
             return
 
-        self.ydl = YoutubeDL(dict(simulate=True, quiet=True,
-                                  youtube_include_dash_manifest=False))
+        self.ydl = YoutubeDL(
+            dict(simulate=True,
+                 quiet=True,
+                 youtube_include_dash_manifest=False))
 
         self.ydl.add_default_info_extractors()
 
@@ -592,4 +595,3 @@ class VideoLoader(BaseLoader):
         warc_headers = StatusAndHeaders('WARC/1.0', warc_headers.items())
 
         return warc_headers, None, BytesIO(info_buff)
-

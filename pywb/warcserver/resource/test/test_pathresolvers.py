@@ -13,25 +13,32 @@ from mock import patch
 
 # ============================================================================
 class TestPathIndex(object):
+
     def test_path_index_resolvers(self):
         path = os.path.join(get_test_dir(), 'text_content', 'pathindex.txt')
         path_index = PathIndexResolver(path)
 
         cdx = CDXObject()
-        assert list(path_index('example.warc.gz', cdx)) == ['invalid_path', 'sample_archive/warcs/example.warc.gz']
-        assert list(path_index('iana.warc.gz', cdx)) == ['sample_archive/warcs/iana.warc.gz']
+        assert list(path_index('example.warc.gz', cdx)) == [
+            'invalid_path', 'sample_archive/warcs/example.warc.gz'
+        ]
+        assert list(path_index('iana.warc.gz',
+                               cdx)) == ['sample_archive/warcs/iana.warc.gz']
         assert list(path_index('not-found.gz', cdx)) == []
 
     def test_resolver_dir_wildcard(self):
-        resolver = DefaultResolverMixin.make_best_resolver(os.path.join(get_test_dir(), '*', ''))
+        resolver = DefaultResolverMixin.make_best_resolver(
+            os.path.join(get_test_dir(), '*', ''))
 
         cdx = CDXObject()
         res = resolver('example.warc.gz', cdx)
         assert len(res) == 1
-        assert res[0] == os.path.join(get_test_dir(), 'warcs', 'example.warc.gz')
+        assert res[0] == os.path.join(get_test_dir(), 'warcs',
+                                      'example.warc.gz')
 
     def test_resolver_dir_wildcard_with_coll(self):
-        resolver = DefaultResolverMixin.make_best_resolver('s3://bucket/colls/*/archives/')
+        resolver = DefaultResolverMixin.make_best_resolver(
+            's3://bucket/colls/*/archives/')
 
         cdx = CDXObject()
         cdx['source'] = 'my-coll/indexes/index.cdxj'
@@ -41,23 +48,26 @@ class TestPathIndex(object):
         assert res == 's3://bucket/colls/my-coll/archives/example.warc.gz'
 
     def test_resolver_dir_wildcard_as_file_url(self):
-        url = to_file_url(get_test_dir()) +  '/*/'
+        url = to_file_url(get_test_dir()) + '/*/'
         resolver = DefaultResolverMixin.make_best_resolver(url)
 
         cdx = CDXObject()
         res = resolver('example.warc.gz', cdx)
         assert len(res) == 1
-        assert res[0] == os.path.abspath(os.path.join(get_test_dir(), 'warcs', 'example.warc.gz'))
+        assert res[0] == os.path.abspath(
+            os.path.join(get_test_dir(), 'warcs', 'example.warc.gz'))
 
     def test_resolver_http_prefix(self):
-        resolver = DefaultResolverMixin.make_best_resolver('http://example.com/prefix/')
+        resolver = DefaultResolverMixin.make_best_resolver(
+            'http://example.com/prefix/')
 
         cdx = CDXObject()
         res = resolver('example.warc.gz', cdx)
         assert res == 'http://example.com/prefix/example.warc.gz'
 
     def test_resolver_http_prefix_not_wildcard(self):
-        resolver = DefaultResolverMixin.make_best_resolver('http://example.com/*/')
+        resolver = DefaultResolverMixin.make_best_resolver(
+            'http://example.com/*/')
 
         cdx = CDXObject()
         res = resolver('example.warc.gz', cdx)
@@ -70,7 +80,8 @@ class TestPathIndex(object):
         cdx = CDXObject()
         assert resolver('example.warc.gz', cdx) == None
 
-        resolver.redis.hset(resolver.redis_key_template, 'example.warc.gz', 'some_path/example.warc.gz')
+        resolver.redis.hset(resolver.redis_key_template, 'example.warc.gz',
+                            'some_path/example.warc.gz')
 
         assert resolver('example.warc.gz', cdx) == 'some_path/example.warc.gz'
 
@@ -81,11 +92,14 @@ class TestPathIndex(object):
         cdx = CDXObject()
         assert resolver('example.warc.gz', cdx) == None
 
-        resolver.redis.hset('A:warc', 'example.warc.gz', 'some_path/example.warc.gz')
-        resolver.redis.hset('B:warc', 'example-2.warc.gz', 'some_path/example-2.warc.gz')
+        resolver.redis.hset('A:warc', 'example.warc.gz',
+                            'some_path/example.warc.gz')
+        resolver.redis.hset('B:warc', 'example-2.warc.gz',
+                            'some_path/example-2.warc.gz')
 
         assert resolver('example.warc.gz', cdx) == 'some_path/example.warc.gz'
-        assert resolver('example-2.warc.gz', cdx) == 'some_path/example-2.warc.gz'
+        assert resolver('example-2.warc.gz',
+                        cdx) == 'some_path/example-2.warc.gz'
 
     @patch('redis.StrictRedis', FakeStrictRedis)
     def test_redis_resolver_multi_key_with_member_set(self):
@@ -95,8 +109,10 @@ class TestPathIndex(object):
         cdx = CDXObject()
         assert resolver('example.warc.gz', cdx) == None
 
-        resolver.redis.hset('A:warc', 'example.warc.gz', 'some_path/example.warc.gz')
-        resolver.redis.hset('B:warc', 'example-2.warc.gz', 'some_path/example-2.warc.gz')
+        resolver.redis.hset('A:warc', 'example.warc.gz',
+                            'some_path/example.warc.gz')
+        resolver.redis.hset('B:warc', 'example-2.warc.gz',
+                            'some_path/example-2.warc.gz')
 
         resolver.redis.sadd('member_set', 'A')
 
@@ -108,7 +124,8 @@ class TestPathIndex(object):
 
         # A:warc and B:warc used
         assert resolver('example.warc.gz', cdx) == 'some_path/example.warc.gz'
-        assert resolver('example-2.warc.gz', cdx) == 'some_path/example-2.warc.gz'
+        assert resolver('example-2.warc.gz',
+                        cdx) == 'some_path/example-2.warc.gz'
 
         assert resolver.member_key_type == 'set'
 
@@ -120,8 +137,10 @@ class TestPathIndex(object):
         cdx = CDXObject()
         assert resolver('example.warc.gz', cdx) == None
 
-        resolver.redis.hset('A:warc', 'example.warc.gz', 'some_path/example.warc.gz')
-        resolver.redis.hset('B:warc', 'example-2.warc.gz', 'some_path/example-2.warc.gz')
+        resolver.redis.hset('A:warc', 'example.warc.gz',
+                            'some_path/example.warc.gz')
+        resolver.redis.hset('B:warc', 'example-2.warc.gz',
+                            'some_path/example-2.warc.gz')
 
         resolver.redis.hset('member_hash', '1', 'A')
 
@@ -133,19 +152,24 @@ class TestPathIndex(object):
 
         # A:warc and B:warc used
         assert resolver('example.warc.gz', cdx) == 'some_path/example.warc.gz'
-        assert resolver('example-2.warc.gz', cdx) == 'some_path/example-2.warc.gz'
+        assert resolver('example-2.warc.gz',
+                        cdx) == 'some_path/example-2.warc.gz'
 
         assert resolver.member_key_type == 'hash'
 
     def test_make_best_resolver_http(self):
-        res = DefaultResolverMixin.make_best_resolver('http://myhost.example.com/warcs/')
+        res = DefaultResolverMixin.make_best_resolver(
+            'http://myhost.example.com/warcs/')
         assert isinstance(res, PrefixResolver)
-        assert repr(res) == "PrefixResolver('http://myhost.example.com/warcs/')"
+        assert repr(
+            res) == "PrefixResolver('http://myhost.example.com/warcs/')"
 
     def test_make_best_resolver_redis(self):
-        res = DefaultResolverMixin.make_best_resolver('redis://myhost.example.com:1234/1')
+        res = DefaultResolverMixin.make_best_resolver(
+            'redis://myhost.example.com:1234/1')
         assert isinstance(res, RedisResolver)
-        assert repr(res) == "RedisResolver('redis://myhost.example.com:1234/1')"
+        assert repr(
+            res) == "RedisResolver('redis://myhost.example.com:1234/1')"
 
     def test_make_best_resolver_pathindex(self):
         path = os.path.join(get_test_dir(), 'text_content', 'pathindex.txt')
@@ -170,9 +194,10 @@ class TestPathIndex(object):
         assert isinstance(res, PrefixResolver)
 
     def test_resolver_list(self):
-        paths = [to_file_url(os.path.realpath(__file__)),
-                 'http://myhost.example.com/warcs/',
-                 'redis://localhost:1234/0']
+        paths = [
+            to_file_url(os.path.realpath(__file__)),
+            'http://myhost.example.com/warcs/', 'redis://localhost:1234/0'
+        ]
 
         res = DefaultResolverMixin.make_resolvers(paths)
         assert isinstance(res[0], PathIndexResolver)

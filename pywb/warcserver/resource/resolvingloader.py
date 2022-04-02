@@ -13,13 +13,18 @@ class ResolvingLoader(object):
 
     EMPTY_DIGEST = '3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ'
 
-    def __init__(self, path_resolvers, record_loader=None, no_record_parse=False):
+    def __init__(self,
+                 path_resolvers,
+                 record_loader=None,
+                 no_record_parse=False):
         self.path_resolvers = path_resolvers
-        self.record_loader = record_loader if record_loader is not None else BlockArcWarcRecordLoader()
+        self.record_loader = record_loader if record_loader is not None else BlockArcWarcRecordLoader(
+        )
         self.no_record_parse = no_record_parse
 
     def __call__(self, cdx, failed_files, cdx_loader, *args, **kwargs):
-        headers_record, payload_record = self.load_headers_and_payload(cdx, failed_files, cdx_loader)
+        headers_record, payload_record = self.load_headers_and_payload(
+            cdx, failed_files, cdx_loader)
 
         # Default handling logic when loading http status/headers
 
@@ -75,10 +80,8 @@ class ResolvingLoader(object):
         # two index lookups
         # Case 1: if mimetype is still warc/revisit
         if cdx.get('mime') == 'warc/revisit' and headers_record:
-            payload_record = self._load_different_url_payload(cdx,
-                                                              headers_record,
-                                                              failed_files,
-                                                              cdx_loader)
+            payload_record = self._load_different_url_payload(
+                cdx, headers_record, failed_files, cdx_loader)
 
         # single lookup cases
         # case 2: non-revisit
@@ -103,12 +106,11 @@ class ResolvingLoader(object):
         """
 
         if is_original:
-            (filename, offset, length) = (cdx['orig.filename'],
-                                          cdx['orig.offset'],
-                                          cdx['orig.length'])
+            (filename, offset,
+             length) = (cdx['orig.filename'], cdx['orig.offset'],
+                        cdx['orig.length'])
         else:
-            (filename, offset, length) = (cdx['filename'],
-                                          cdx['offset'],
+            (filename, offset, length) = (cdx['filename'], cdx['offset'],
                                           cdx.get('length', '-'))
 
         # optimization: if same file already failed this request,
@@ -131,9 +133,11 @@ class ResolvingLoader(object):
             for path in possible_paths:
                 any_found = True
                 try:
-                    return (self.record_loader.
-                            load(path, offset, length,
-                                 no_record_parse=self.no_record_parse))
+                    return (self.record_loader.load(
+                        path,
+                        offset,
+                        length,
+                        no_record_parse=self.no_record_parse))
 
                 except Exception as ue:
                     last_exc = ue
@@ -151,10 +155,11 @@ class ResolvingLoader(object):
             msg = 'Archive File Not Found'
 
         # raise ArchiveLoadFailed(msg, filename), None, last_traceback
-        six.reraise(ArchiveLoadFailed, ArchiveLoadFailed(filename + ': ' + msg), last_traceback)
+        six.reraise(ArchiveLoadFailed,
+                    ArchiveLoadFailed(filename + ': ' + msg), last_traceback)
 
-    def _load_different_url_payload(self, cdx, headers_record,
-                                    failed_files, cdx_loader):
+    def _load_different_url_payload(self, cdx, headers_record, failed_files,
+                                    cdx_loader):
         """
         Handle the case where a duplicate of a capture with same digest
         exists at a different url.
@@ -172,8 +177,8 @@ class ResolvingLoader(object):
         if digest == self.EMPTY_DIGEST:
             return headers_record
 
-        ref_target_uri = (headers_record.rec_headers.
-                          get_header('WARC-Refers-To-Target-URI'))
+        ref_target_uri = (
+            headers_record.rec_headers.get_header('WARC-Refers-To-Target-URI'))
 
         target_uri = headers_record.rec_headers.get_header('WARC-Target-URI')
 
@@ -181,8 +186,8 @@ class ResolvingLoader(object):
         if not ref_target_uri:
             raise ArchiveLoadFailed(self.MISSING_REVISIT_MSG)
 
-        ref_target_date = (headers_record.rec_headers.
-                           get_header('WARC-Refers-To-Date'))
+        ref_target_date = (
+            headers_record.rec_headers.get_header('WARC-Refers-To-Date'))
 
         if not ref_target_date:
             ref_target_date = cdx['timestamp']
@@ -191,16 +196,15 @@ class ResolvingLoader(object):
 
         try:
             orig_cdx_lines = self.load_cdx_for_dupe(ref_target_uri,
-                                                    ref_target_date,
-                                                    digest,
+                                                    ref_target_date, digest,
                                                     cdx_loader)
         except NotFoundException:
             raise ArchiveLoadFailed(self.MISSING_REVISIT_MSG)
 
         for orig_cdx in orig_cdx_lines:
             try:
-                payload_record = self._resolve_path_load(orig_cdx, False,
-                                                         failed_files)
+                payload_record = self._resolve_path_load(
+                    orig_cdx, False, failed_files)
                 return payload_record
 
             except ArchiveLoadFailed as e:
@@ -223,8 +227,6 @@ class ResolvingLoader(object):
         if digest and digest != '-':
             filters.append('digest:' + digest)
 
-        params = dict(url=url,
-                      closest=timestamp,
-                      filter=filters)
+        params = dict(url=url, closest=timestamp, filter=filters)
 
         return cdx_loader(params)

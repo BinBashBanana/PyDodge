@@ -134,8 +134,8 @@ import json
 
 import pytest
 
-
 test_zipnum = get_test_dir() + 'zipcdx/zipnum-sample.idx'
+
 
 def zip_ops_test_data(url, **kwargs):
     sources = {'zip': test_zipnum}
@@ -143,9 +143,11 @@ def zip_ops_test_data(url, **kwargs):
     if res:
         return res[0]
 
+
 def zip_ops_test(url, **kwargs):
     sources = {'zip': test_zipnum}
     cdx_ops_test(url, sources, **kwargs)
+
 
 def zip_test_err(url, **kwargs):
     sources = {'zip': get_test_dir() + 'zipcdx/zipnum-bad.idx'}
@@ -160,24 +162,21 @@ def test_zip_prefix_load():
         shutil.copy(get_test_dir() + 'zipcdx/zipnum-sample.cdx.gz',
                     os.path.join(tmpdir, 'zipnum'))
 
-        config={}
-        config['shard_index_loc'] = dict(match='(.*)',
-                                         replace=r'\1')
+        config = {}
+        config['shard_index_loc'] = dict(match='(.*)', replace=r'\1')
 
         config['path'] = os.path.join(tmpdir, 'zipnum-sample.idx')
         config['type'] = 'zipnum'
         server = init_index_agg({'zip': config})
 
         # Test Page Count
-        results = server(dict(url='iana.org/',
-                              matchType='domain',
-                              showNumPages=True))
+        results = server(
+            dict(url='iana.org/', matchType='domain', showNumPages=True))
 
         cdx_iter, err = results
         results = list(cdx_iter)
         assert len(results) == 1, results
         assert results[0] == {"blocks": 38, "pages": 4, "pageSize": 10}
-
 
         # Test simple query
         results = server(dict(url='iana.org/'))
@@ -193,62 +192,92 @@ def test_zip_prefix_load():
         shutil.rmtree(tmpdir)
 
 
-
 def test_blocks_def_page_size():
     # Pages -- default page size
-    res = zip_ops_test_data(url='http://iana.org/domains/example', matchType='exact', showNumPages=True)
-    assert(res == {"blocks": 1, "pages": 1, "pageSize": 10})
+    res = zip_ops_test_data(url='http://iana.org/domains/example',
+                            matchType='exact',
+                            showNumPages=True)
+    assert (res == {"blocks": 1, "pages": 1, "pageSize": 10})
+
 
 def test_blocks_def_size_2():
-    res = zip_ops_test_data(url='http://iana.org/domains/', matchType='domain', showNumPages=True)
-    assert(res == {"blocks": 38, "pages": 4, "pageSize": 10})
+    res = zip_ops_test_data(url='http://iana.org/domains/',
+                            matchType='domain',
+                            showNumPages=True)
+    assert (res == {"blocks": 38, "pages": 4, "pageSize": 10})
+
 
 def test_blocks_set_page_size():
     # set page size
-    res = zip_ops_test_data(url='http://iana.org/domains/', matchType='domain', pageSize=4, showNumPages=True)
-    assert(res == {"blocks": 38, "pages": 10, "pageSize": 4})
+    res = zip_ops_test_data(url='http://iana.org/domains/',
+                            matchType='domain',
+                            pageSize=4,
+                            showNumPages=True)
+    assert (res == {"blocks": 38, "pages": 10, "pageSize": 4})
+
 
 def test_blocks_alt_q():
     # set page size -- alt domain query
     res = zip_ops_test_data(url='*.iana.org', pageSize='4', showNumPages=True)
-    assert(res == {"blocks": 38, "pages": 10, "pageSize": 4})
+    assert (res == {"blocks": 38, "pages": 10, "pageSize": 4})
+
 
 def test_blocks_secondary_match():
     # page size for non-existent, but secondary index match
-    res = zip_ops_test_data(url='iana.org/domains/int/blah', pageSize=4, showNumPages=True)
-    assert(res == {"blocks": 0, "pages": 0, "pageSize": 4})
+    res = zip_ops_test_data(url='iana.org/domains/int/blah',
+                            pageSize=4,
+                            showNumPages=True)
+    assert (res == {"blocks": 0, "pages": 0, "pageSize": 4})
+
 
 def test_blocks_no_match():
     # page size for non-existent, no secondary index match
     res = zip_ops_test_data(url='*.foo.bar', showNumPages=True)
-    assert(res == {"blocks": 0, "pages": 0, "pageSize": 10})
+    assert (res == {"blocks": 0, "pages": 0, "pageSize": 10})
+
 
 def test_blocks_zero_pages():
     # read cdx to find 0 pages
-    res = zip_ops_test_data(url='http://aaa.zz/', matchType='domain', showNumPages=True)
-    assert(res == {"blocks": 0, "pages": 0, "pageSize": 10})
+    res = zip_ops_test_data(url='http://aaa.zz/',
+                            matchType='domain',
+                            showNumPages=True)
+    assert (res == {"blocks": 0, "pages": 0, "pageSize": 10})
+
 
 def test_blocks_ignore_filter_params():
-    res = zip_ops_test_data(url='*.iana.org', pageSize='4', showNumPages=True, filter='=status:200')
-    assert(res == {"blocks": 38, "pages": 10, "pageSize": 4})
+    res = zip_ops_test_data(url='*.iana.org',
+                            pageSize='4',
+                            showNumPages=True,
+                            filter='=status:200')
+    assert (res == {"blocks": 38, "pages": 10, "pageSize": 4})
+
 
 def test_blocks_ignore_timestamp_params():
-    res = zip_ops_test_data(url='*.iana.org', pageSize='4', showNumPages=True, closest='20140126000000')
-    assert(res == {"blocks": 38, "pages": 10, "pageSize": 4})
+    res = zip_ops_test_data(url='*.iana.org',
+                            pageSize='4',
+                            showNumPages=True,
+                            closest='20140126000000')
+    assert (res == {"blocks": 38, "pages": 10, "pageSize": 4})
 
 
 # Errors
 
+
 def test_err_file_not_found():
     with pytest.raises(IOError):
-        zip_test_err(url='http://iana.org/x', matchType='exact')  # doctest: +IGNORE_EXCEPTION_DETAIL
+        zip_test_err(url='http://iana.org/x',
+                     matchType='exact')  # doctest: +IGNORE_EXCEPTION_DETAIL
+
 
 def test_invalid_int_param():
     with pytest.raises(CDXException):
-        zip_ops_test_data(url='http://iana.org/domains/example', matchType='exact', pageSize='not-an-integer')
+        zip_ops_test_data(url='http://iana.org/domains/example',
+                          matchType='exact',
+                          pageSize='not-an-integer')
     with pytest.raises(CDXException):
-        zip_ops_test_data(url='http://iana.org/domains/example', matchType='exact', page='not-an-integer')
-
+        zip_ops_test_data(url='http://iana.org/domains/example',
+                          matchType='exact',
+                          page='not-an-integer')
 
 
 if __name__ == "__main__":

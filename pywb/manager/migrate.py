@@ -8,6 +8,7 @@ import shutil
 
 #=============================================================================
 class MigrateCDX(object):
+
     def __init__(self, dir_):
         self.cdx_dir = dir_
 
@@ -42,5 +43,3 @@ class MigrateCDX(object):
 
             shutil.move(outfile + '.tmp', outfile)
             os.remove(filename)
-
-

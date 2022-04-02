@@ -37,7 +37,9 @@ class WbResponse(object):
         pass
 
     @staticmethod
-    def text_stream(stream, content_type='text/plain; charset=utf-8', status='200 OK'):
+    def text_stream(stream,
+                    content_type='text/plain; charset=utf-8',
+                    status='200 OK'):
         """Utility method for constructing a streaming text response.
 
         :param Any stream: The response body stream
@@ -49,7 +51,8 @@ class WbResponse(object):
         if 'charset' not in content_type:
             content_type += '; charset=utf-8'
 
-        return WbResponse.bin_stream(WbResponse.encode_stream(stream), content_type, status)
+        return WbResponse.bin_stream(WbResponse.encode_stream(stream),
+                                     content_type, status)
 
     @staticmethod
     def encode_stream(stream):
@@ -62,8 +65,7 @@ class WbResponse(object):
             yield obj.encode('utf-8')
 
     @staticmethod
-    def bin_stream(stream, content_type, status='200 OK',
-                   headers=None):
+    def bin_stream(stream, content_type, status='200 OK', headers=None):
         """Utility method for constructing a binary response.
 
         :param Any stream: The response body stream
@@ -82,7 +84,9 @@ class WbResponse(object):
         return WbResponse(status_headers, value=stream)
 
     @staticmethod
-    def text_response(text, status='200 OK', content_type='text/plain; charset=utf-8'):
+    def text_response(text,
+                      status='200 OK',
+                      content_type='text/plain; charset=utf-8'):
         """Utility method for constructing a text response.
 
         :param str text: The text response body
@@ -92,14 +96,16 @@ class WbResponse(object):
         :rtype: WbResponse
         """
         encoded_text = text.encode('utf-8')
-        status_headers = StatusAndHeaders(status,
-                                          [('Content-Type', content_type),
-                                           ('Content-Length', str(len(encoded_text)))])
+        status_headers = StatusAndHeaders(
+            status, [('Content-Type', content_type),
+                     ('Content-Length', str(len(encoded_text)))])
 
         return WbResponse(status_headers, value=[encoded_text])
 
     @staticmethod
-    def json_response(obj, status='200 OK', content_type='application/json; charset=utf-8'):
+    def json_response(obj,
+                      status='200 OK',
+                      content_type='application/json; charset=utf-8'):
         """Utility method for constructing a JSON response.
 
         :param dict obj: The dictionary to be serialized in JSON format
@@ -170,7 +176,8 @@ class WbResponse(object):
                            self.status_headers.headers)
 
         request_method = env['REQUEST_METHOD']
-        if request_method == 'HEAD' or request_method == 'OPTIONS' or self.status_headers.statusline.startswith('304'):
+        if request_method == 'HEAD' or request_method == 'OPTIONS' or self.status_headers.statusline.startswith(
+                '304'):
             no_except_close(self.body)
             return []
 
@@ -204,13 +211,18 @@ class WbResponse(object):
                 allowed_methods = allowed_methods + ', ' + r_method
             acr_headers = env.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS')
             if acr_headers is not None:
-                self.status_headers.replace_header('Access-Control-Allow-Headers', acr_headers)
-            allowed_origin = env.get('HTTP_ORIGIN', env.get('HTTP_REFERER', allowed_origin))
+                self.status_headers.replace_header(
+                    'Access-Control-Allow-Headers', acr_headers)
+            allowed_origin = env.get('HTTP_ORIGIN',
+                                     env.get('HTTP_REFERER', allowed_origin))
         if allowed_origin is None:
             allowed_origin = '*'
-        self.status_headers.replace_header('Access-Control-Allow-Origin',  allowed_origin)
-        self.status_headers.replace_header('Access-Control-Allow-Methods', allowed_methods)
-        self.status_headers.replace_header('Access-Control-Allow-Credentials', 'true')
+        self.status_headers.replace_header('Access-Control-Allow-Origin',
+                                           allowed_origin)
+        self.status_headers.replace_header('Access-Control-Allow-Methods',
+                                           allowed_methods)
+        self.status_headers.replace_header('Access-Control-Allow-Credentials',
+                                           'true')
         self.status_headers.replace_header('Access-Control-Max-Age', '1800')
         return self
 

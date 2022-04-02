@@ -331,18 +331,18 @@ r"""
 
 """
 
-
 #=================================================================
 from pywb.rewrite.url_rewriter import UrlRewriter
 from pywb.rewrite.regex_rewriters import RegexRewriter, JSRewriter, CSSRewriter, XMLRewriter, RxRules
 from pywb.rewrite.regex_rewriters import JSWombatProxyRewriter
 
+urlrewriter = UrlRewriter('20131010/http://example.com/', '/web/',
+                          'https://localhost/web/')
 
-urlrewriter = UrlRewriter('20131010/http://example.com/', '/web/', 'https://localhost/web/')
 
-
-def _test_js(string, extra = []):
+def _test_js(string, extra=[]):
     return JSRewriter(urlrewriter, extra).rewrite(string)
+
 
 def _test_js_obj_proxy(string):
     rw = JSWombatProxyRewriter(urlrewriter)
@@ -350,8 +350,10 @@ def _test_js_obj_proxy(string):
     rw.close_string = ''
     return rw.rewrite(string)
 
+
 def _test_xml(string):
     return XMLRewriter(urlrewriter).rewrite(string)
+
 
 def _test_css(string):
     return CSSRewriter(urlrewriter).rewrite(string)
@@ -360,5 +362,3 @@ def _test_css(string):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
-

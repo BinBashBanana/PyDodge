@@ -7,7 +7,13 @@ from pywb.utils.io import BUFF_SIZE
 
 #=================================================================
 class BlockArcWarcRecordLoader(ArcWarcRecordLoader):
-    def __init__(self, loader=None, cookie_maker=None, block_size=BUFF_SIZE, *args, **kwargs):
+
+    def __init__(self,
+                 loader=None,
+                 cookie_maker=None,
+                 block_size=BUFF_SIZE,
+                 *args,
+                 **kwargs):
         if not loader:
             loader = BlockLoader(cookie_maker=cookie_maker)
 
@@ -32,4 +38,5 @@ class BlockArcWarcRecordLoader(ArcWarcRecordLoader):
                                              decomp_type=decomp_type,
                                              block_size=self.block_size)
 
-        return self.parse_record_stream(stream, no_record_parse=no_record_parse)
+        return self.parse_record_stream(stream,
+                                        no_record_parse=no_record_parse)

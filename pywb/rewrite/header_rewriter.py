@@ -13,19 +13,13 @@ class DefaultHeaderRewriter(object):
         'access-control-max-age': 'prefix-if-url-rewrite',
         'access-control-allow-methods': 'prefix-if-url-rewrite',
         'access-control-allow-headers': 'prefix-if-url-rewrite',
-
         'accept-patch': 'keep',
         'accept-ranges': 'keep',
-
         'age': 'prefix',
-
         'allow': 'keep',
-
         'alt-svc': 'prefix',
         'cache-control': 'prefix',
-
         'connection': 'prefix',
-
         'content-base': 'url-rewrite',
         'content-disposition': 'keep',
         'content-encoding': 'prefix-if-content-rewrite',
@@ -37,46 +31,30 @@ class DefaultHeaderRewriter(object):
         'content-security-policy': 'prefix',
         'content-security-policy-report-only': 'prefix',
         'content-type': 'keep',
-
         'date': 'prefix',
-
         'etag': 'prefix',
         'expires': 'prefix',
-
         'last-modified': 'prefix',
         'link': 'keep',
         'location': 'url-rewrite',
-
         'p3p': 'prefix',
         'pragma': 'prefix',
-
         'proxy-authenticate': 'keep',
-
         'public-key-pins': 'prefix',
         'retry-after': 'prefix',
         'server': 'prefix',
-
         'set-cookie': 'cookie',
-
         'status': 'prefix',
-
         'strict-transport-security': 'prefix',
-
         'trailer': 'prefix',
         'transfer-encoding': 'transfer-encoding',
         'tk': 'prefix',
-
         'upgrade': 'prefix',
         'upgrade-insecure-requests': 'prefix',
-
         'vary': 'prefix',
-
         'via': 'prefix',
-
         'warning': 'prefix',
-
         'www-authenticate': 'keep',
-
         'x-frame-options': 'prefix',
         'x-xss-protection': 'prefix',
     }
@@ -170,5 +148,3 @@ class DefaultHeaderRewriter(object):
             dt = dt + timedelta(seconds=age)
             new_headers.append(('Cache-Control', 'max-age=' + str(age)))
             new_headers.append(('Expires', datetime_to_http_date(dt)))
-
-

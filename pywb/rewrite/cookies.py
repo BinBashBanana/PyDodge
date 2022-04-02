@@ -12,6 +12,7 @@ import six
 
 # =============================================================================
 class CookieTracker(object):
+
     def __init__(self, redis, expire_time=120):
         self.redis = redis
         self.expire_time = expire_time
@@ -19,7 +20,8 @@ class CookieTracker(object):
     def get_rewriter(self, url_rewriter, cookie_key):
         return DomainCacheCookieRewriter(url_rewriter, self, cookie_key)
 
-    def get_cookie_headers(self, url, url_rewriter, cookie_key, existing_cookie):
+    def get_cookie_headers(self, url, url_rewriter, cookie_key,
+                           existing_cookie):
         existing_cookie = existing_cookie or ''
         subds = self.get_subdomains(url)
         host_cookie_rewriter = HostScopeNoFilterCookieRewriter(url_rewriter)
@@ -101,12 +103,14 @@ class CookieTracker(object):
 
 # =============================================================================
 class HostScopeNoFilterCookieRewriter(HostScopeCookieRewriter):
+
     def _filter_morsel(self, morsel):
         pass
 
 
 # =============================================================================
 class DomainCacheCookieRewriter(WbUrlBaseCookieRewriter):
+
     def __init__(self, url_rewriter, cookie_tracker, cookie_key):
         super(DomainCacheCookieRewriter, self).__init__(url_rewriter)
         self.cookie_tracker = cookie_tracker
@@ -133,9 +137,7 @@ class DomainCacheCookieRewriter(WbUrlBaseCookieRewriter):
             if morsel.get('secure'):
                 string += '; Secure'
 
-            self.cookie_tracker.add_cookie(self.cookie_key,
-                                           domain,
-                                           morsel.key,
+            self.cookie_tracker.add_cookie(self.cookie_key, domain, morsel.key,
                                            string)
 
         # else set cookie to rewritten path
@@ -172,4 +174,3 @@ class DomainCacheCookieRewriter(WbUrlBaseCookieRewriter):
 
 
 # ============================================================================
-

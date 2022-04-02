@@ -11,7 +11,6 @@ import six
 import os
 import logging
 import glob
-
 """
 The purpose of this module is to 'resolve' a warc/arc filename,
 often found in a CDX file, to a full loadable url.
@@ -28,6 +27,7 @@ make_best_resolver() attempts to guess the resolver method for given uri
 # if url contains specified string
 #=============================================================================
 class PrefixResolver(object):
+
     def __init__(self, template):
         self.template = template
 
@@ -72,6 +72,7 @@ class PrefixResolver(object):
 
 #=============================================================================
 class RedisResolver(RedisIndexSource):
+
     def __call__(self, filename, cdx):
         redis_key = self.redis_key_template
         params = {}
@@ -99,6 +100,7 @@ class RedisResolver(RedisIndexSource):
 
 #=================================================================
 class PathIndexResolver(object):
+
     def __init__(self, pathindex_file):
         self.pathindex_file = pathindex_file
 
@@ -117,6 +119,7 @@ class PathIndexResolver(object):
 
 #=================================================================
 class DefaultResolverMixin(object):
+
     @classmethod
     def make_best_resolver(cls, path):
         if hasattr(path, '__call__'):

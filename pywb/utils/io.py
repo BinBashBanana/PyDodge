@@ -27,7 +27,11 @@ def no_except_close(closable):
 
 
 # =============================================================================
-def StreamIter(stream, header1=None, header2=None, size=BUFF_SIZE, closer=closing):
+def StreamIter(stream,
+               header1=None,
+               header2=None,
+               size=BUFF_SIZE,
+               closer=closing):
     with closer(stream):
         if header1:
             yield header1
@@ -75,8 +79,7 @@ def buffer_iter(status_headers, iterator, buff_size=BUFF_SIZE * 4):
 
     content_length_str = str(size)
     # remove existing content length
-    status_headers.replace_header('Content-Length',
-                                  content_length_str)
+    status_headers.replace_header('Content-Length', content_length_str)
 
     out.seek(0)
     return StreamIter(out)
@@ -97,6 +100,7 @@ def compress_gzip_iter(orig_iter):
 
 # ============================================================================
 class OffsetLimitReader(LimitReader):
+
     def __init__(self, stream, offset, length):
         super(OffsetLimitReader, self).__init__(stream, length)
         self.offset = offset
@@ -122,6 +126,7 @@ class OffsetLimitReader(LimitReader):
 
 # ============================================================================
 class StreamClosingReader(object):
+
     def __init__(self, stream):
         self.stream = stream
 

@@ -20,7 +20,8 @@ class HTMLInsertOnlyRewriter(StreamingRewriter):
 
     def rewrite(self, string):
         if self.first:
-            if self.url_rewriter.rewrite_opts.get('is_ajax') and self.XML_HEADER.search(string):
+            if self.url_rewriter.rewrite_opts.get(
+                    'is_ajax') and self.XML_HEADER.search(string):
                 self.done = True
 
             self.first = False

@@ -3,6 +3,7 @@ import six
 import re
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +30,8 @@ class WbUrlBaseCookieRewriter(object):
 
             self._filter_morsel(morsel)
 
-            if not self.add_prefix_cookie_for_all_mods(morsel, results, header):
+            if not self.add_prefix_cookie_for_all_mods(morsel, results,
+                                                       header):
                 value = morsel.OutputString()
                 results.append((header, value))
 
@@ -89,6 +91,7 @@ class WbUrlBaseCookieRewriter(object):
 
 #=================================================================
 class RemoveAllCookiesRewriter(WbUrlBaseCookieRewriter):
+
     def rewrite(self, cookie_str, header='Set-Cookie'):
         return []
 
@@ -165,6 +168,7 @@ class RootScopeCookieRewriter(WbUrlBaseCookieRewriter):
 
     This rewriter simply sets all cookies to be in the root
     """
+
     def rewrite_cookie(self, name, morsel):
         # get root path
         morsel['path'] = self.url_rewriter.root_path
@@ -190,4 +194,3 @@ def get_cookie_rewriter(cookie_scope):
         return MinimalScopeCookieRewriter
     else:
         return HostScopeCookieRewriter
-

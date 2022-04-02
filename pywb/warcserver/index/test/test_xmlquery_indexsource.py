@@ -8,7 +8,6 @@ from six.moves.urllib.parse import quote_plus
 from mock import patch
 import pytest
 
-
 query_url = None
 
 
@@ -28,6 +27,7 @@ def mock_get(self, url):
         string = PREFIX_QUERY
 
     class MockResponse(object):
+
         def __init__(self, string):
             self.string = string
 
@@ -42,17 +42,18 @@ def mock_get(self, url):
         def raise_for_status(self):
             pass
 
-
     return MockResponse(string)
 
 
 # ============================================================================
 class TestXmlQueryIndexSource(BaseTestClass):
+
     @classmethod
     def setup_class(cls):
         super(TestXmlQueryIndexSource, cls).setup_class()
 
-        cls.xmlpatch = patch('pywb.warcserver.index.indexsource.etree', cls._get_etree())
+        cls.xmlpatch = patch('pywb.warcserver.index.indexsource.etree',
+                             cls._get_etree())
         cls.xmlpatch.start()
 
     @classmethod
@@ -66,9 +67,12 @@ class TestXmlQueryIndexSource(BaseTestClass):
         super(TestXmlQueryIndexSource, cls).teardown_class()
 
     def do_query(self, params):
-        return SimpleAggregator({'source': XmlQueryIndexSource('http://localhost:8080/path')})(params)
+        return SimpleAggregator(
+            {'source':
+             XmlQueryIndexSource('http://localhost:8080/path')})(params)
 
-    @patch('pywb.warcserver.index.indexsource.requests.sessions.Session.get', mock_get)
+    @patch('pywb.warcserver.index.indexsource.requests.sessions.Session.get',
+           mock_get)
     def test_exact_query(self):
         res, errs = self.do_query({'url': 'http://example.com/', 'limit': 100})
         reslist = list(res)
@@ -76,39 +80,43 @@ class TestXmlQueryIndexSource(BaseTestClass):
         expected = """\
 com,example)/ 20180112200243 example.warc.gz
 com,example)/ 20180216200300 example.warc.gz"""
-        assert(key_ts_res(reslist) == expected)
-        assert(errs == {})
+        assert (key_ts_res(reslist) == expected)
+        assert (errs == {})
         assert query_url == 'http://localhost:8080/path?q=limit%3A100+type%3Aurlquery+url%3Ahttp%253A%252F%252Fexample.com%252F'
         assert reslist[0]['length'] == '123'
         assert 'length' not in reslist[1]
 
-
-    @patch('pywb.warcserver.index.indexsource.requests.sessions.Session.get', mock_get)
+    @patch('pywb.warcserver.index.indexsource.requests.sessions.Session.get',
+           mock_get)
     def test_exact_query_2(self):
         res, errs = self.do_query({'url': 'http://example.com/some/path'})
         expected = """\
 com,example)/some/path 20180112200243 example.warc.gz
 com,example)/some/path 20180216200300 example.warc.gz"""
-        assert(key_ts_res(res) == expected)
-        assert(errs == {})
+        assert (key_ts_res(res) == expected)
+        assert (errs == {})
 
         assert query_url == 'http://localhost:8080/path?q=type%3Aurlquery+url%3Ahttp%253A%252F%252Fexample.com%252Fsome%252Fpath'
 
-
-    @patch('pywb.warcserver.index.indexsource.requests.sessions.Session.get', mock_get)
+    @patch('pywb.warcserver.index.indexsource.requests.sessions.Session.get',
+           mock_get)
     def test_prefix_query(self):
-        res, errs = self.do_query({'url': 'http://example.com/', 'matchType': 'prefix'})
+        res, errs = self.do_query({
+            'url': 'http://example.com/',
+            'matchType': 'prefix'
+        })
         expected = """\
 com,example)/ 20180112200243 example.warc.gz
 com,example)/ 20180216200300 example.warc.gz
 com,example)/some/path 20180112200243 example.warc.gz
 com,example)/some/path 20180216200300 example.warc.gz"""
-        assert(key_ts_res(res) == expected)
-        assert(errs == {})
+        assert (key_ts_res(res) == expected)
+        assert (errs == {})
 
 
 # ============================================================================
 class TestXmlQueryIndexSourceLXML(TestXmlQueryIndexSource):
+
     @classmethod
     def _get_etree(cls):
         pytest.importorskip('lxml.etree')

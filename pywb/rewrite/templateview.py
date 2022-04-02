@@ -26,6 +26,7 @@ except ImportError:  # pragma: no cover
 # ============================================================================
 class RelEnvironment(Environment):
     """Override join_path() to enable relative template paths."""
+
     def join_path(self, template, parent):
         return os.path.join(os.path.dirname(parent), template)
 
@@ -36,7 +37,8 @@ class JinjaEnv(object):
     configured template loaders and template paths, and contains the actual Jinja
     env used by each template."""
 
-    def __init__(self, paths=None,
+    def __init__(self,
+                 paths=None,
                  packages=None,
                  assets_path=None,
                  globals=None,
@@ -75,10 +77,11 @@ class JinjaEnv(object):
             extensions.append(AssetsExtension)
 
         if overlay:
-            jinja_env = overlay.jinja_env.overlay(loader=loader,
-                                                  autoescape=select_autoescape(),
-                                                  trim_blocks=True,
-                                                  extensions=extensions)
+            jinja_env = overlay.jinja_env.overlay(
+                loader=loader,
+                autoescape=select_autoescape(),
+                trim_blocks=True,
+                extensions=extensions)
         else:
             jinja_env = RelEnvironment(loader=loader,
                                        autoescape=select_autoescape(),
@@ -122,7 +125,8 @@ class JinjaEnv(object):
 
     def init_loc(self, locales_root_dir, locales, loc_map, default_locale):
         locales = locales or []
-        locales_root_dir = locales_root_dir or os.path.join('i18n', 'translations')
+        locales_root_dir = locales_root_dir or os.path.join(
+            'i18n', 'translations')
         default_locale = default_locale or 'en'
         self.default_locale = default_locale
 
@@ -130,15 +134,19 @@ class JinjaEnv(object):
             try:
                 from babel.support import Translations
                 for loc in locales:
-                    loc_map[loc] = Translations.load(locales_root_dir, [loc, default_locale])
+                    loc_map[loc] = Translations.load(locales_root_dir,
+                                                     [loc, default_locale])
             except:
-                logging.warn("Ignoring Locales. You must install i18n extensions with 'pip install pywb[i18n]' to use localization features")
+                logging.warn(
+                    "Ignoring Locales. You must install i18n extensions with 'pip install pywb[i18n]' to use localization features"
+                )
 
         def get_translate(context):
             loc = context.get('env', {}).get('pywb_lang', default_locale)
             return loc_map.get(loc)
 
         def override_func(jinja_env, name):
+
             @contextfunction
             def get_override(context, text):
                 translate = get_translate(context)
@@ -204,7 +212,8 @@ class JinjaEnv(object):
                 coll = coll[len(curr_loc) + 1:]
 
             for locale in loc_map.keys():
-                locale_prefixes[locale] = orig_prefix + '/' + locale + coll + '/'
+                locale_prefixes[
+                    locale] = orig_prefix + '/' + locale + coll + '/'
 
             return locale_prefixes
 
@@ -221,6 +230,7 @@ class JinjaEnv(object):
         :return: A decorator to wrap a template filter function
         :rtype: callable
         """
+
         def deco(func):
             name = param or func.__name__
             self.filters[name] = func
@@ -324,7 +334,6 @@ class BaseInsertView(object):
         kwargs['env'] = env
         kwargs['static_prefix'] = env.get('pywb.static_prefix', '/static')
 
-
         return template.render(**kwargs)
 
 
@@ -333,7 +342,8 @@ class HeadInsertView(BaseInsertView):
     """The template view class associated with rendering the HTML inserted
     into the head of the pages replayed (WB Insert)."""
 
-    def create_insert_func(self, wb_url,
+    def create_insert_func(self,
+                           wb_url,
                            wb_prefix,
                            host_prefix,
                            top_url,
@@ -370,7 +380,9 @@ class HeadInsertView(BaseInsertView):
             params['is_live'] = cdx.get('is_live')
 
             if self.banner_view:
-                banner_html = self.banner_view.render_to_string(env, cdx=cdx, **params)
+                banner_html = self.banner_view.render_to_string(env,
+                                                                cdx=cdx,
+                                                                **params)
                 params['banner_html'] = banner_html
 
             return self.render_to_string(env, cdx=cdx, **params)
@@ -382,7 +394,8 @@ class HeadInsertView(BaseInsertView):
 class TopFrameView(BaseInsertView):
     """The template view class associated with rendering the replay iframe"""
 
-    def get_top_frame(self, wb_url,
+    def get_top_frame(self,
+                      wb_url,
                       wb_prefix,
                       host_prefix,
                       env,
@@ -412,19 +425,20 @@ class TopFrameView(BaseInsertView):
 
         is_proxy = 'wsgiprox.proxy_host' in env
 
-        params = {'host_prefix': host_prefix,
-                  'wb_prefix': wb_prefix,
-                  'wb_url': wb_url,
-                  'coll': coll,
-
-                  'options': {'frame_mod': frame_mod,
-                              'replay_mod': replay_mod},
-
-                  'embed_url': embed_url,
-                  'is_proxy': is_proxy,
-                  'timestamp': timestamp,
-                  'url': wb_url.get_url()
-                 }
+        params = {
+            'host_prefix': host_prefix,
+            'wb_prefix': wb_prefix,
+            'wb_url': wb_url,
+            'coll': coll,
+            'options': {
+                'frame_mod': frame_mod,
+                'replay_mod': replay_mod
+            },
+            'embed_url': embed_url,
+            'is_proxy': is_proxy,
+            'timestamp': timestamp,
+            'url': wb_url.get_url()
+        }
 
         if extra_params:
             params.update(extra_params)
@@ -464,5 +478,3 @@ class PkgResResolver(Resolver):
                 return filename
 
         return super(PkgResResolver, self).resolve_source(ctx, item)
-
-

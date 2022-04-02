@@ -11,11 +11,10 @@ from six import iterkeys
 from six.moves.urllib.parse import urlsplit
 from collections import namedtuple
 
-
 # ============================================================================
-FuzzyRule = namedtuple('FuzzyRule',
-                       'url_prefix, regex, replace_after, filter_str, ' +
-                       'match_type, find_all')
+FuzzyRule = namedtuple(
+    'FuzzyRule',
+    'url_prefix, regex, replace_after, filter_str, ' + 'match_type, find_all')
 
 
 # ============================================================================
@@ -24,8 +23,8 @@ class FuzzyMatcher(object):
     DEFAULT_MATCH_TYPE = 'prefix'
     DEFAULT_REPLACE_AFTER = '?'
 
-    FUZZY_SKIP_PARAMS = ('alt_url', 'reverse', 'closest', 'end_key',
-                         'url', 'matchType', 'filter')
+    FUZZY_SKIP_PARAMS = ('alt_url', 'reverse', 'closest', 'end_key', 'url',
+                         'matchType', 'filter')
 
     def __init__(self, filename=None):
         filename = filename or DEFAULT_RULES_FILE
@@ -38,9 +37,13 @@ class FuzzyMatcher(object):
 
         self.default_filters = config.get('default_filters')
 
-        self.fuzzy_search_limit = self.default_filters.get('fuzzy_search_limit')
+        self.fuzzy_search_limit = self.default_filters.get(
+            'fuzzy_search_limit')
 
-        self.url_normalize_rx = [(re.compile(rule['match']), rule['replace']) for rule in self.default_filters['url_normalize']]
+        self.url_normalize_rx = [
+            (re.compile(rule['match']), rule['replace'])
+            for rule in self.default_filters['url_normalize']
+        ]
 
     def parse_fuzzy_rule(self, rule):
         """ Parse rules using all the different supported forms
@@ -67,14 +70,16 @@ class FuzzyMatcher(object):
             match_type = config.get('type', self.DEFAULT_MATCH_TYPE)
             find_all = config.get('find_all', False)
 
-        return FuzzyRule(url_prefix, regex, replace_after, filter_str, match_type, find_all)
+        return FuzzyRule(url_prefix, regex, replace_after, filter_str,
+                         match_type, find_all)
 
     def get_fuzzy_match(self, urlkey, url, params):
         filters = set()
         matched_rule = None
 
         for rule in self.rules:
-            if not any((urlkey.startswith(prefix) for prefix in rule.url_prefix)):
+            if not any(
+                (urlkey.startswith(prefix) for prefix in rule.url_prefix)):
                 continue
 
             groups = None
@@ -99,7 +104,8 @@ class FuzzyMatcher(object):
 
         # support matching w/o query if no additional filters
         # don't include trailing '?' if no filters and replace_after '?'
-        no_filters = (not filters or filters == {'urlkey:'}) and (matched_rule.replace_after == '?')
+        no_filters = (not filters or filters
+                      == {'urlkey:'}) and (matched_rule.replace_after == '?')
 
         inx = url.find(matched_rule.replace_after)
         if inx > 0:
@@ -118,10 +124,12 @@ class FuzzyMatcher(object):
             host = urlsplit(url).netloc
             url = host.split('.', 1)[1]
 
-        fuzzy_params = {'url': url,
-                        'matchType': matched_rule.match_type,
-                        'filter': filters,
-                        'is_fuzzy': '1'}
+        fuzzy_params = {
+            'url': url,
+            'matchType': matched_rule.match_type,
+            'filter': filters,
+            'is_fuzzy': '1'
+        }
 
         if self.fuzzy_search_limit:
             fuzzy_params['limit'] = self.fuzzy_search_limit
@@ -186,7 +194,8 @@ class FuzzyMatcher(object):
         rx_cache = {}
 
         for cdx in new_iter:
-            if is_custom or self.match_general_fuzzy_query(url, urlkey, cdx, rx_cache):
+            if is_custom or self.match_general_fuzzy_query(
+                    url, urlkey, cdx, rx_cache):
                 cdx['is_fuzzy'] = '1'
                 yield cdx
 
@@ -215,13 +224,15 @@ class FuzzyMatcher(object):
 
         # if check_query, ensure matched url starts with original prefix, only differs by query
         if check_query:
-            if cdx['url'] == url_no_query or cdx['url'].startswith(url_no_query + '?'):
+            if cdx['url'] == url_no_query or cdx['url'].startswith(
+                    url_no_query + '?'):
                 return True
 
         match_urlkey = cdx['urlkey']
 
         for normalize_rx in self.url_normalize_rx:
-            match_urlkey = re.sub(normalize_rx[0], normalize_rx[1], match_urlkey)
+            match_urlkey = re.sub(normalize_rx[0], normalize_rx[1],
+                                  match_urlkey)
             curr_urlkey = rx_cache.get(normalize_rx[0])
 
             if not curr_urlkey:

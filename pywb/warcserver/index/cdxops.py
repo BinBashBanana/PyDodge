@@ -127,8 +127,8 @@ def cdx_limit(cdx_iter, limit):
     """
     limit cdx to at most `limit`.
     """
-#    for cdx, _ in itertools.izip(cdx_iter, xrange(limit)):
-#        yield cdx
+    #    for cdx, _ in itertools.izip(cdx_iter, xrange(limit)):
+    #        yield cdx
     return (cdx for cdx, _ in zip(cdx_iter, range(limit)))
 
 
@@ -159,6 +159,7 @@ def cdx_reverse(cdx_iter, limit):
 
 #=================================================================
 class CDXFilter(object):
+
     def __init__(self, string):
         # invert filter
         self.invert = string.startswith('!')
@@ -184,8 +185,7 @@ class CDXFilter(object):
         # apply filter to cdx[field]
         else:
             self.field = parts[0]
-            self.field = CDXObject.CDX_ALT_FIELDS.get(self.field,
-                                                      self.field)
+            self.field = CDXObject.CDX_ALT_FIELDS.get(self.field, self.field)
             string = parts[1]
 
         # make regex if regex mode

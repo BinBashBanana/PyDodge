@@ -1,4 +1,6 @@
-from gevent.monkey import patch_all; patch_all()
+from gevent.monkey import patch_all
+
+patch_all()
 
 from werkzeug.routing import Map, Rule, RequestRedirect, Submount
 from werkzeug.wsgi import pop_path_info
@@ -85,14 +87,15 @@ class FrontEndApp(object):
 
         self.proxy_prefix = None  # the URL prefix to be used for the collection with proxy mode (e.g. /coll/id_/)
         self.proxy_coll = None  # the name of the collection that has proxy mode enabled
-        self.proxy_record = False # indicate if proxy recording
+        self.proxy_record = False  # indicate if proxy recording
         self.init_proxy(config)
 
         self.init_recorder(config.get('recorder'))
 
         self.init_autoindex(config.get('autoindex'))
 
-        static_path = config.get('static_url_path', 'pywb/static/').replace('/', os.path.sep)
+        static_path = config.get('static_url_path',
+                                 'pywb/static/').replace('/', os.path.sep)
         self.static_handler = StaticHandler(static_path)
 
         self.cdx_api_endpoint = config.get('cdx_api_endpoint', '/cdx')
@@ -108,7 +111,8 @@ class FrontEndApp(object):
         self.templates_dir = config.get('templates_dir', 'templates')
         self.static_dir = config.get('static_dir', 'static')
 
-        metadata_templ = os.path.join(self.warcserver.root_dir, '{coll}', 'metadata.yaml')
+        metadata_templ = os.path.join(self.warcserver.root_dir, '{coll}',
+                                      'metadata.yaml')
         self.metadata_cache = MetadataCache(metadata_templ)
 
         self._init_routes()
@@ -118,8 +122,11 @@ class FrontEndApp(object):
         specific routes (proxy mode, record)
         """
         self.url_map = Map()
-        self.url_map.add(Rule('/static/_/<coll>/<path:filepath>', endpoint=self.serve_static))
-        self.url_map.add(Rule('/static/<path:filepath>', endpoint=self.serve_static))
+        self.url_map.add(
+            Rule('/static/_/<coll>/<path:filepath>',
+                 endpoint=self.serve_static))
+        self.url_map.add(
+            Rule('/static/<path:filepath>', endpoint=self.serve_static))
         self.url_map.add(Rule('/collinfo.json', endpoint=self.serve_listing))
 
         if self.is_valid_coll('$root'):
@@ -132,8 +139,10 @@ class FrontEndApp(object):
 
         if self.proxy_prefix is not None:
             # Add the proxy-fetch endpoint to enable PreservationWorker to make CORS fetches worry free in proxy mode
-            self.url_map.add(Rule('/proxy-fetch/<path:url>', endpoint=self.proxy_fetch,
-                                  methods=['GET', 'HEAD', 'OPTIONS']))
+            self.url_map.add(
+                Rule('/proxy-fetch/<path:url>',
+                     endpoint=self.proxy_fetch,
+                     methods=['GET', 'HEAD', 'OPTIONS']))
 
     def _init_coll_routes(self, coll_prefix):
         """Initialize and register the routes for specified collection path
@@ -167,16 +176,22 @@ class FrontEndApp(object):
         routes = [
             Rule(coll_prefix + self.cdx_api_endpoint, endpoint=self.serve_cdx),
             Rule(coll_prefix + '/', endpoint=self.serve_coll_page),
-            Rule(coll_prefix + '/timemap/<timemap_output>/<path:url>', endpoint=self.serve_content),
+            Rule(coll_prefix + '/timemap/<timemap_output>/<path:url>',
+                 endpoint=self.serve_content),
             Rule(coll_prefix + '/<path:url>', endpoint=self.serve_content)
         ]
 
         if self.recorder_path:
-            routes.append(Rule(coll_prefix + self.RECORD_ROUTE + '/<path:url>', endpoint=self.serve_record))
+            routes.append(
+                Rule(coll_prefix + self.RECORD_ROUTE + '/<path:url>',
+                     endpoint=self.serve_record))
 
             # enable PUT of custom data as 'resource' records
             if self.put_custom_record_path:
-                routes.append(Rule(coll_prefix + self.RECORD_ROUTE, endpoint=self.put_custom_record, methods=["PUT"]))
+                routes.append(
+                    Rule(coll_prefix + self.RECORD_ROUTE,
+                         endpoint=self.put_custom_record,
+                         methods=["PUT"]))
 
         return routes
 
@@ -235,34 +250,40 @@ class FrontEndApp(object):
             raise Exception(msg.format(dedup_policy))
 
         if dedup_policy:
-            dedup_index = WritableRedisIndexer(redis_url=self.warcserver.dedup_index_url,
-                                               dupe_policy=dedup_policy,
-                                               rel_path_template=self.warcserver.root_dir + '/{coll}/archive')
+            dedup_index = WritableRedisIndexer(
+                redis_url=self.warcserver.dedup_index_url,
+                dupe_policy=dedup_policy,
+                rel_path_template=self.warcserver.root_dir + '/{coll}/archive')
         else:
             dedup_index = None
 
-
-        warc_writer = MultiFileWARCWriter(self.warcserver.archive_paths,
-                                          max_size=int(recorder_config.get('rollover_size', 1000000000)),
-                                          max_idle_secs=int(recorder_config.get('rollover_idle_secs', 600)),
-                                          filename_template=recorder_config.get('filename_template'),
-                                          dedup_index=dedup_index,
-                                          dedup_by_url=dedup_by_url)
+        warc_writer = MultiFileWARCWriter(
+            self.warcserver.archive_paths,
+            max_size=int(recorder_config.get('rollover_size', 1000000000)),
+            max_idle_secs=int(recorder_config.get('rollover_idle_secs', 600)),
+            filename_template=recorder_config.get('filename_template'),
+            dedup_index=dedup_index,
+            dedup_by_url=dedup_by_url)
 
         if dedup_policy:
-            pending_counter = self.warcserver.dedup_index_url.replace(':cdxj', ':pending')
+            pending_counter = self.warcserver.dedup_index_url.replace(
+                ':cdxj', ':pending')
             pending_timeout = recorder_config.get('pending_timeout', 30)
-            create_buff_func = lambda params, name: RedisPendingCounterTempBuffer(512 * 1024, pending_counter, params, name, pending_timeout)
+            create_buff_func = lambda params, name: RedisPendingCounterTempBuffer(
+                512 * 1024, pending_counter, params, name, pending_timeout)
         else:
             create_buff_func = None
 
-        self.recorder = RecorderApp(self.RECORD_SERVER % str(self.warcserver_server.port), warc_writer,
-                                    accept_colls=recorder_config.get('source_filter'),
-                                    create_buff_func=create_buff_func)
+        self.recorder = RecorderApp(
+            self.RECORD_SERVER % str(self.warcserver_server.port),
+            warc_writer,
+            accept_colls=recorder_config.get('source_filter'),
+            create_buff_func=create_buff_func)
 
         recorder_server = GeventServer(self.recorder, port=0)
 
-        self.recorder_path = self.RECORD_API % (recorder_server.port, recorder_coll)
+        self.recorder_path = self.RECORD_API % (recorder_server.port,
+                                                recorder_coll)
 
         # enable PUT of custom data as 'resource' records
         if recorder_config.get('enable_put_custom_record'):
@@ -320,7 +341,8 @@ class FrontEndApp(object):
                                              routes=routes,
                                              all_metadata=all_metadata)
 
-        return WbResponse.text_response(content, content_type='text/html; charset="utf-8"')
+        return WbResponse.text_response(
+            content, content_type='text/html; charset="utf-8"')
 
     def serve_static(self, environ, coll='', filepath=''):
         """Serve a static file associated with a specific collection or one of pywb's own static assets
@@ -335,7 +357,8 @@ class FrontEndApp(object):
         if proxy_enabled and environ.get('REQUEST_METHOD') == 'OPTIONS':
             return WbResponse.options_response(environ)
         if coll:
-            path = os.path.join(self.warcserver.root_dir, coll, self.static_dir)
+            path = os.path.join(self.warcserver.root_dir, coll,
+                                self.static_dir)
         else:
             path = self.static_dir
 
@@ -355,8 +378,7 @@ class FrontEndApp(object):
         :return: The collections config
         :rtype: dict
         """
-        coll_config = {'coll': coll,
-                       'type': 'replay'}
+        coll_config = {'coll': coll, 'type': 'replay'}
 
         if coll in self.warcserver.list_fixed_routes():
             coll_config.update(self.warcserver.get_coll_config(coll))
@@ -393,7 +415,8 @@ class FrontEndApp(object):
                                         coll_config=coll_config,
                                         metadata=metadata)
 
-        return WbResponse.text_response(content, content_type='text/html; charset="utf-8"')
+        return WbResponse.text_response(
+            content, content_type='text/html; charset="utf-8"')
 
     def serve_cdx(self, environ, coll='$root'):
         """Make the upstream CDX query for a collection and response with the results of the query
@@ -429,7 +452,8 @@ class FrontEndApp(object):
                                          status=status_line)
 
         except Exception as e:
-            return WbResponse.text_response('Error: ' + str(e), status='400 Bad Request')
+            return WbResponse.text_response('Error: ' + str(e),
+                                            status='400 Bad Request')
 
     def serve_record(self, environ, coll='$root', url=''):
         """Serve a URL's content from a WARC/ARC record in replay mode or from the live web in
@@ -442,11 +466,18 @@ class FrontEndApp(object):
         :rtype: WbResponse
         """
         if coll in self.warcserver.list_fixed_routes():
-            return WbResponse.text_response('Error: Can Not Record Into Custom Collection "{0}"'.format(coll))
+            return WbResponse.text_response(
+                'Error: Can Not Record Into Custom Collection "{0}"'.format(
+                    coll))
 
         return self.serve_content(environ, coll, url, record=True)
 
-    def serve_content(self, environ, coll='$root', url='', timemap_output='', record=False):
+    def serve_content(self,
+                      environ,
+                      coll='$root',
+                      url='',
+                      timemap_output='',
+                      record=False):
         """Serve the contents of a URL/Record rewriting the contents of the response when applicable.
 
         :param dict environ: The WSGI environment dictionary for the request
@@ -481,9 +512,11 @@ class FrontEndApp(object):
         if timemap_output:
             coll_config['output'] = timemap_output
             # ensure that the timemap path information is not included
-            wb_url_str = wb_url_str.replace('timemap/{0}/'.format(timemap_output), '')
+            wb_url_str = wb_url_str.replace(
+                'timemap/{0}/'.format(timemap_output), '')
 
-        return self.rewriterapp.render_content(wb_url_str, coll_config, environ)
+        return self.rewriterapp.render_content(wb_url_str, coll_config,
+                                               environ)
 
     def put_custom_record(self, environ, coll="$root"):
         """ When recording, PUT a custom WARC record to the specified collection
@@ -511,15 +544,16 @@ class FrontEndApp(object):
         target_uri = params.get("url")
 
         if not target_uri:
-            return WbResponse.json_response({"error": "no url"}, status="400 Bad Request")
+            return WbResponse.json_response({"error": "no url"},
+                                            status="400 Bad Request")
 
         timestamp = params.get("timestamp")
         if timestamp:
             headers["WARC-Date"] = timestamp_to_iso_date(timestamp)
 
-        put_url = self.put_custom_record_path.format(
-            url=target_uri, coll=coll, rec_type=rec_type
-        )
+        put_url = self.put_custom_record_path.format(url=target_uri,
+                                                     coll=coll,
+                                                     rec_type=rec_type)
         res = requests.put(put_url, headers=headers, data=data)
 
         res = res.json()
@@ -559,9 +593,10 @@ class FrontEndApp(object):
         :return: WbResponse containing the frontend apps WARCServer URL paths
         :rtype: WbResponse
         """
-        result = {'fixed': self.warcserver.list_fixed_routes(),
-                  'dynamic': self.warcserver.list_dynamic_routes()
-                  }
+        result = {
+            'fixed': self.warcserver.list_fixed_routes(),
+            'dynamic': self.warcserver.list_dynamic_routes()
+        }
 
         return WbResponse.json_response(result)
 
@@ -575,8 +610,8 @@ class FrontEndApp(object):
         # if coll == self.all_coll:
         #    return True
 
-        return (coll in self.warcserver.list_fixed_routes() or
-                coll in self.warcserver.list_dynamic_routes())
+        return (coll in self.warcserver.list_fixed_routes()
+                or coll in self.warcserver.list_dynamic_routes())
 
     def raise_not_found(self, environ, err_type, url):
         """Utility function for raising a werkzeug.exceptions.NotFound execption with the supplied WSGI environment
@@ -675,7 +710,8 @@ class FrontEndApp(object):
             if self.debug:
                 traceback.print_exc()
 
-            response = self.rewriterapp._error_response(environ, WbException('Internal Error: ' + str(e)))
+            response = self.rewriterapp._error_response(
+                environ, WbException('Internal Error: ' + str(e)))
 
         return response(environ, start_response)
 
@@ -710,11 +746,14 @@ class FrontEndApp(object):
         if '/' in proxy_coll:
             raise Exception('Proxy collection can not contain "/"')
 
-        proxy_config['ca_name'] = proxy_config.get('ca_name', self.PROXY_CA_NAME)
-        proxy_config['ca_file_cache'] = proxy_config.get('ca_file_cache', self.PROXY_CA_PATH)
+        proxy_config['ca_name'] = proxy_config.get('ca_name',
+                                                   self.PROXY_CA_NAME)
+        proxy_config['ca_file_cache'] = proxy_config.get(
+            'ca_file_cache', self.PROXY_CA_PATH)
 
         if proxy_config.get('recording'):
-            logging.info('Proxy recording into collection "{0}"'.format(proxy_coll))
+            logging.info(
+                'Proxy recording into collection "{0}"'.format(proxy_coll))
             if proxy_coll in self.warcserver.list_fixed_routes():
                 raise Exception('Can not record into fixed collection')
 
@@ -725,7 +764,8 @@ class FrontEndApp(object):
             self.proxy_record = True
 
         else:
-            logging.info('Proxy enabled for collection "{0}"'.format(proxy_coll))
+            logging.info(
+                'Proxy enabled for collection "{0}"'.format(proxy_coll))
             self.proxy_record = False
             proxy_route = proxy_coll
 
@@ -738,15 +778,19 @@ class FrontEndApp(object):
         if self.proxy_default_timestamp:
             if not self.ALL_DIGITS.match(self.proxy_default_timestamp):
                 try:
-                    self.proxy_default_timestamp = iso_date_to_timestamp(self.proxy_default_timestamp)
+                    self.proxy_default_timestamp = iso_date_to_timestamp(
+                        self.proxy_default_timestamp)
                 except Exception:
-                    raise Exception('Invalid Proxy Timestamp: Must Be All-Digit Timestamp or ISO Date Format')
+                    raise Exception(
+                        'Invalid Proxy Timestamp: Must Be All-Digit Timestamp or ISO Date Format'
+                    )
 
         self.proxy_coll = proxy_coll
 
         self.handler = WSGIProxMiddleware(self.handle_request,
                                           self.proxy_route_request,
-                                          proxy_host=proxy_config.get('host', 'pywb.proxy'),
+                                          proxy_host=proxy_config.get(
+                                              'host', 'pywb.proxy'),
                                           proxy_options=proxy_config)
 
     def proxy_route_request(self, url, environ):
@@ -756,7 +800,8 @@ class FrontEndApp(object):
         Default is to use the 'proxy_prefix' to point to the proxy collection
         """
         if self.proxy_default_timestamp:
-            environ['pywb_proxy_default_timestamp'] = self.proxy_default_timestamp
+            environ[
+                'pywb_proxy_default_timestamp'] = self.proxy_default_timestamp
 
         return self.proxy_prefix + url
 
@@ -774,8 +819,9 @@ class FrontEndApp(object):
         """
         if not self.is_proxy_enabled(env):
             # we are not in proxy mode so just respond with forbidden
-            return WbResponse.text_response('proxy mode must be enabled to use this endpoint',
-                                            status='403 Forbidden')
+            return WbResponse.text_response(
+                'proxy mode must be enabled to use this endpoint',
+                status='403 Forbidden')
 
         if env.get('REQUEST_METHOD') == 'OPTIONS':
             return WbResponse.options_response(env)
@@ -784,10 +830,14 @@ class FrontEndApp(object):
         url = env['REQUEST_URI'].split('/proxy-fetch/', 1)[-1]
 
         env['REQUEST_URI'] = self.proxy_prefix + url
-        env['PATH_INFO'] = self.proxy_prefix + env['PATH_INFO'].split('/proxy-fetch/', 1)[-1]
+        env['PATH_INFO'] = self.proxy_prefix + env['PATH_INFO'].split(
+            '/proxy-fetch/', 1)[-1]
 
         # make request using normal serve_content
-        response = self.serve_content(env, self.proxy_coll, url, record=self.proxy_record)
+        response = self.serve_content(env,
+                                      self.proxy_coll,
+                                      url,
+                                      record=self.proxy_record)
 
         # for WR
         if isinstance(response, WbResponse):

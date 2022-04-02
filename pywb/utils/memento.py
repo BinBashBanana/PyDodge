@@ -5,7 +5,6 @@ from warcio.timeutils import timestamp_to_http_date, http_date_to_timestamp
 
 from pywb.utils.wbexception import BadRequestException
 
-
 LINK_SPLIT = re.compile(',\s*(?=[<])')
 LINK_SEG_SPLIT = re.compile(';\s*')
 LINK_URL = re.compile('<(.*)>')
@@ -21,6 +20,7 @@ class MementoException(BadRequestException):
 
 #=============================================================================
 class MementoUtils(object):
+
     @classmethod
     def parse_links(cls, link_header, def_name='timemap'):
         links = LINK_SPLIT.split(link_header)
@@ -65,7 +65,12 @@ class MementoUtils(object):
         return results
 
     @classmethod
-    def make_timemap_memento_link(cls, cdx, datetime=None, rel='memento', end=',\n', memento_format=None):
+    def make_timemap_memento_link(cls,
+                                  cdx,
+                                  datetime=None,
+                                  rel='memento',
+                                  end=',\n',
+                                  memento_format=None):
         """Creates a memento link string for a timemap
 
         :param dict cdx: The cdx object
@@ -78,12 +83,15 @@ class MementoUtils(object):
         """
         url = cdx.get('url')
         if not url:
-            url = 'file://{0}:{1}:{2}'.format(cdx.get('filename'), cdx.get('offset'), cdx.get('length'))
+            url = 'file://{0}:{1}:{2}'.format(cdx.get('filename'),
+                                              cdx.get('offset'),
+                                              cdx.get('length'))
 
         if not datetime:
             datetime = timestamp_to_http_date(cdx['timestamp'])
 
-        return cls.make_memento_link(url, rel, datetime, cdx.get('source-coll'), memento_format) + end
+        return cls.make_memento_link(
+            url, rel, datetime, cdx.get('source-coll'), memento_format) + end
 
     @classmethod
     def make_timemap(cls, cdx_iter, params):
@@ -92,13 +100,16 @@ class MementoUtils(object):
 
         for cdx in cdx_iter:
             if prev_cdx:
-                yield cls.make_timemap_memento_link(prev_cdx, memento_format=memento_format)
+                yield cls.make_timemap_memento_link(
+                    prev_cdx, memento_format=memento_format)
 
             prev_cdx = cdx
 
         # last memento link, if any
         if prev_cdx:
-            yield cls.make_timemap_memento_link(prev_cdx, end='\n', memento_format=memento_format)
+            yield cls.make_timemap_memento_link(prev_cdx,
+                                                end='\n',
+                                                memento_format=memento_format)
 
     @classmethod
     def wrap_timemap_header(cls, url, timegate_url, timemap_url, timemap):
@@ -117,7 +128,8 @@ class MementoUtils(object):
     @classmethod
     def make_link(cls, url, type):
         if type in ('timemap', 'self'):
-            return '<{0}>; rel="{1}"; type="application/link-format"'.format(url, type)
+            return '<{0}>; rel="{1}"; type="application/link-format"'.format(
+                url, type)
 
         return '<{0}>; rel="{1}"'.format(url, type)
 
@@ -134,15 +146,14 @@ class MementoUtils(object):
         :rtype: str
         """
         if memento_format:
-            memento_format = memento_format.format(url=url,
-                                                   timestamp=http_date_to_timestamp(dt))
+            memento_format = memento_format.format(
+                url=url, timestamp=http_date_to_timestamp(dt))
         else:
             memento_format = url
 
-        res = '<{0}>; rel="{1}"; datetime="{2}"'.format(memento_format, type, dt)
+        res = '<{0}>; rel="{1}"; datetime="{2}"'.format(
+            memento_format, type, dt)
         if coll:
             res += '; collection="{0}"'.format(coll)
 
         return res
-
-

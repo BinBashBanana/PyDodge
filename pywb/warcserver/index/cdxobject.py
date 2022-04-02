@@ -15,7 +15,6 @@ from warcio.utils import to_native_str
 from json import loads as json_decode
 from json import dumps as json_encode
 
-
 #=================================================================
 URLKEY = 'urlkey'
 TIMESTAMP = 'timestamp'
@@ -36,6 +35,7 @@ ORIG_FILENAME = 'orig.filename'
 
 #=================================================================
 class CDXException(WbException):
+
     @property
     def status_code(self):
         return 400
@@ -48,60 +48,61 @@ class CDXObject(OrderedDict):
     """
     CDX_FORMATS = [
         # Public CDX Format
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, LENGTH],
+        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST, LENGTH],
 
         # CDX 11 Format
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, REDIRECT, ROBOTFLAGS, LENGTH, OFFSET, FILENAME],
+        [
+            URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST,
+            REDIRECT, ROBOTFLAGS, LENGTH, OFFSET, FILENAME
+        ],
 
         # CDX 10 Format
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, REDIRECT, ROBOTFLAGS, OFFSET, FILENAME],
+        [
+            URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST,
+            REDIRECT, ROBOTFLAGS, OFFSET, FILENAME
+        ],
 
         # CDX 9 Format
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, REDIRECT, OFFSET, FILENAME],
+        [
+            URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST,
+            REDIRECT, OFFSET, FILENAME
+        ],
 
         # CDX 11 Format + 3 revisit resolve fields
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, REDIRECT, ROBOTFLAGS, LENGTH, OFFSET, FILENAME,
-         ORIG_LENGTH, ORIG_OFFSET, ORIG_FILENAME],
+        [
+            URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST,
+            REDIRECT, ROBOTFLAGS, LENGTH, OFFSET, FILENAME, ORIG_LENGTH,
+            ORIG_OFFSET, ORIG_FILENAME
+        ],
 
         # CDX 10 Format + 3 revisit resolve fields
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, REDIRECT, ROBOTFLAGS, OFFSET, FILENAME,
-         ORIG_LENGTH, ORIG_OFFSET, ORIG_FILENAME],
+        [
+            URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST,
+            REDIRECT, ROBOTFLAGS, OFFSET, FILENAME, ORIG_LENGTH, ORIG_OFFSET,
+            ORIG_FILENAME
+        ],
 
         # CDX 9 Format + 3 revisit resolve fields
-        [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-         DIGEST, REDIRECT, OFFSET, FILENAME,
-         ORIG_LENGTH, ORIG_OFFSET, ORIG_FILENAME],
+        [
+            URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE, DIGEST,
+            REDIRECT, OFFSET, FILENAME, ORIG_LENGTH, ORIG_OFFSET, ORIG_FILENAME
+        ],
     ]
 
-
     CDX_ALT_FIELDS = {
-                  'u': ORIGINAL,
-                  'original': ORIGINAL,
-
-                  'statuscode': STATUSCODE,
-                  's': STATUSCODE,
-
-                  'mimetype': MIMETYPE,
-                  'm': MIMETYPE,
-
-                  'l': LENGTH,
-                  's': LENGTH,
-
-                  'o': OFFSET,
-
-                  'd': DIGEST,
-
-                  't': TIMESTAMP,
-
-                  'k': URLKEY,
-
-                  'f': FILENAME
+        'u': ORIGINAL,
+        'original': ORIGINAL,
+        'statuscode': STATUSCODE,
+        's': STATUSCODE,
+        'mimetype': MIMETYPE,
+        'm': MIMETYPE,
+        'l': LENGTH,
+        's': LENGTH,
+        'o': OFFSET,
+        'd': DIGEST,
+        't': TIMESTAMP,
+        'k': URLKEY,
+        'f': FILENAME
     }
 
     def __init__(self, cdxline=b''):
@@ -116,7 +117,7 @@ class CDXObject(OrderedDict):
             self.cdxline = cdxline
             return
 
-        fields = cdxline.split(b' ' , 2)
+        fields = cdxline.split(b' ', 2)
         # Check for CDX JSON
         if fields[-1].startswith(b'{'):
             self[URLKEY] = to_native_str(fields[0], 'utf-8')
@@ -150,7 +151,8 @@ class CDXObject(OrderedDict):
                 cdxformat = i
 
         if not cdxformat:
-            msg = 'unknown {0}-field cdx format: {1}'.format(len(fields), fields)
+            msg = 'unknown {0}-field cdx format: {1}'.format(
+                len(fields), fields)
             raise CDXException(msg)
 
         for header, field in zip(cdxformat, fields):
@@ -169,8 +171,8 @@ class CDXObject(OrderedDict):
 
     def is_revisit(self):
         """return ``True`` if this record is a revisit record."""
-        return (self.get(MIMETYPE) == 'warc/revisit' or
-                self.get(FILENAME) == '-')
+        return (self.get(MIMETYPE) == 'warc/revisit'
+                or self.get(FILENAME) == '-')
 
     def to_text(self, fields=None):
         """
@@ -209,9 +211,12 @@ class CDXObject(OrderedDict):
         :param fields: list of field names to output
         """
         if fields is None:
-            return json_encode(OrderedDict(((x, obj[x]) for x in obj if not x.startswith('_')))) + '\n'
+            return json_encode(
+                OrderedDict(((x, obj[x])
+                             for x in obj if not x.startswith('_')))) + '\n'
 
-        result = json_encode(OrderedDict([(x, obj[x]) for x in fields if x in obj])) + '\n'
+        result = json_encode(
+            OrderedDict([(x, obj[x]) for x in fields if x in obj])) + '\n'
 
         return result
 

@@ -17,6 +17,7 @@ from pywb.warcserver.inputrequest import DirectWSGIInputRequest
 
 # ==============================================================================
 class RecorderApp(object):
+
     def __init__(self, upstream_host, writer, skip_filters=None, **kwargs):
         self.upstream_host = upstream_host
 
@@ -24,7 +25,8 @@ class RecorderApp(object):
 
         self.rec_source_name = kwargs.get('name', 'recorder')
 
-        self.create_buff_func = kwargs.get('create_buff_func') or self.default_create_buffer
+        self.create_buff_func = kwargs.get(
+            'create_buff_func') or self.default_create_buffer
 
         self.write_queue = gevent.queue.Queue()
         gevent.spawn(self._write_loop)
@@ -71,11 +73,12 @@ class RecorderApp(object):
                 uri = resp.rec_headers.get_header('WARC-Target-Uri')
                 req_length = req_pay.tell()
                 req_pay.seek(0)
-                req = self.writer.create_warc_record(uri=uri,
-                                                     record_type='request',
-                                                     payload=req_pay,
-                                                     length=req_length,
-                                                     warc_headers_dict=req_head)
+                req = self.writer.create_warc_record(
+                    uri=uri,
+                    record_type='request',
+                    payload=req_pay,
+                    length=req_length,
+                    warc_headers_dict=req_head)
 
                 self.writer.write_request_response_pair(req, resp, params)
 
@@ -93,8 +96,7 @@ class RecorderApp(object):
                 traceback.print_exc()
 
     def send_error(self, exc, start_response):
-        return self.send_message({'error': repr(exc)},
-                                 '400 Bad Request',
+        return self.send_message({'error': repr(exc)}, '400 Bad Request',
                                  start_response)
 
     def send_message(self, msg, status, start_response):
@@ -105,8 +107,8 @@ class RecorderApp(object):
         start_response(status, headers)
         return [message.encode('utf-8')]
 
-    def _put_record(self, request_uri, input_buff, record_type,
-                    headers, params, start_response):
+    def _put_record(self, request_uri, input_buff, record_type, headers,
+                    params, start_response):
 
         if record_type == 'stream':
             if self.writer.write_stream_to_file(params, input_buff):
@@ -114,14 +116,11 @@ class RecorderApp(object):
             else:
                 msg = {'error_message': 'upload_error'}
 
-            return self.send_message(msg, '200 OK',
-                                     start_response)
+            return self.send_message(msg, '200 OK', start_response)
 
         req_stream = None
         try:
-            req_stream = ReqWrapper(input_buff,
-                                    headers,
-                                    params,
+            req_stream = ReqWrapper(input_buff, headers, params,
                                     self.create_buff_func)
 
             while True:
@@ -134,29 +133,31 @@ class RecorderApp(object):
             payload_length = req_stream.out.tell()
             req_stream.out.seek(0)
 
-            record = self.writer.create_warc_record(uri=params['url'],
-                                                    record_type=record_type,
-                                                    payload=req_stream.out,
-                                                    length=payload_length,
-                                                    warc_content_type=content_type,
-                                                    warc_headers_dict=req_stream.headers)
+            record = self.writer.create_warc_record(
+                uri=params['url'],
+                record_type=record_type,
+                payload=req_stream.out,
+                length=payload_length,
+                warc_content_type=content_type,
+                warc_headers_dict=req_stream.headers)
 
             self.writer.write_record(record, params)
 
-            msg = {'success': 'true',
-                   'WARC-Date': record.rec_headers.get_header('WARC-Date')}
+            msg = {
+                'success': 'true',
+                'WARC-Date': record.rec_headers.get_header('WARC-Date')
+            }
 
         finally:
             if req_stream:
                 no_except_close(req_stream.out)
 
-        return self.send_message(msg,
-                                 '200 OK',
-                                 start_response)
+        return self.send_message(msg, '200 OK', start_response)
 
     def _get_params(self, environ):
         params = dict(parse_qsl(environ.get('QUERY_STRING')))
-        params['_formatter'] = ParamFormatter(params, name=self.rec_source_name)
+        params['_formatter'] = ParamFormatter(params,
+                                              name=self.rec_source_name)
         return params
 
     def __call__(self, environ, start_response):
@@ -183,21 +184,16 @@ class RecorderApp(object):
         # write request body as metadata/resource
         put_record = params.get('put_record')
         if put_record and method in ('PUT', 'POST'):
-            return self._put_record(request_uri,
-                                    input_buff,
-                                    put_record,
-                                    headers,
-                                    params,
-                                    start_response)
+            return self._put_record(request_uri, input_buff, put_record,
+                                    headers, params, start_response)
 
-        skipping = any(x.skip_request(path, headers) for x in self.skip_filters)
+        skipping = any(
+            x.skip_request(path, headers) for x in self.skip_filters)
 
         req_is_wrapped = False
 
         if not skipping:
-            req_stream = ReqWrapper(input_buff,
-                                    headers,
-                                    params,
+            req_stream = ReqWrapper(input_buff, headers, params,
                                     self.create_buff_func)
             req_is_wrapped = True
         else:
@@ -221,19 +217,13 @@ class RecorderApp(object):
             return self.send_error(e, start_response)
 
         if not skipping:
-            skipping = any(x.skip_response(path,
-                                           req_stream.headers,
-                                           res.headers,
-                                           params)
-                           for x in self.skip_filters)
+            skipping = any(
+                x.skip_response(path, req_stream.headers, res.headers, params)
+                for x in self.skip_filters)
 
         if not skipping:
-            resp_stream = RespWrapper(res.raw,
-                                      res.headers,
-                                      req_stream,
-                                      params,
-                                      self.write_queue,
-                                      path,
+            resp_stream = RespWrapper(res.raw, res.headers, req_stream, params,
+                                      self.write_queue, path,
                                       self.create_buff_func)
 
         else:
@@ -253,6 +243,7 @@ class RecorderApp(object):
 
 # ==============================================================================
 class Wrapper(object):
+
     def __init__(self, stream, params, create_func):
         self.stream = stream
         self.params = params
@@ -273,8 +264,8 @@ class Wrapper(object):
 
 # ==============================================================================
 class RespWrapper(Wrapper):
-    def __init__(self, stream, headers, req,
-                 params, queue, path, create_func):
+
+    def __init__(self, stream, headers, req, params, queue, path, create_func):
 
         super(RespWrapper, self).__init__(stream, params, create_func)
         self.headers = headers
@@ -307,8 +298,8 @@ class RespWrapper(Wrapper):
                 skipping = True
 
             if not skipping:
-                entry = (self.req.headers, self.req.out,
-                         self.headers, self.out, self.params)
+                entry = (self.req.headers, self.req.out, self.headers,
+                         self.out, self.params)
                 self.queue.put(entry)
         except Exception:
             traceback.print_exc()
@@ -325,6 +316,7 @@ class RespWrapper(Wrapper):
 
 # ==============================================================================
 class ReqWrapper(Wrapper):
+
     def __init__(self, stream, req_headers, params, create_func):
         super(ReqWrapper, self).__init__(stream, params, create_func)
         self.headers = {}

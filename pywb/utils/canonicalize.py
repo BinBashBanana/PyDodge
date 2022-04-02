@@ -9,6 +9,7 @@ from pywb.utils.wbexception import BadRequestException
 
 #=================================================================
 class UrlCanonicalizer(object):
+
     def __init__(self, surt_ordered=True):
         self.surt_ordered = surt_ordered
 
@@ -148,6 +149,7 @@ def calc_search_range(url, match_type, surt_ordered=True, url_canon=None):
     UrlCanonicalizeException: Invalid match_type: blah
 
     """
+
     def inc_last_char(x):
         return x[0:-1] + chr(ord(x[-1]) + 1)
 

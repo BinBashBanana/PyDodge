@@ -13,6 +13,7 @@ from io import BytesIO
 
 
 class TestHeaderRewriter(object):
+
     @classmethod
     def setup_class(cls):
         cls.urlrewriter = UrlRewriter('20171226/http://example.com/', '/warc/')
@@ -22,15 +23,19 @@ class TestHeaderRewriter(object):
     def get_rwinfo(cls, record):
         return RewriteInfo(record=record,
                            content_rewriter=cls.default_rewriter,
-                           url_rewriter=cls.urlrewriter, cookie_rewriter=None)
+                           url_rewriter=cls.urlrewriter,
+                           cookie_rewriter=None)
 
     @classmethod
     def do_rewrite(cls, statusline, headers):
         writer = BufferWARCWriter()
 
-        http_headers = StatusAndHeaders(statusline, headers, protocol='HTTP/1.0')
+        http_headers = StatusAndHeaders(statusline,
+                                        headers,
+                                        protocol='HTTP/1.0')
 
-        record = writer.create_warc_record('http://example.com/', 'response',
+        record = writer.create_warc_record('http://example.com/',
+                                           'response',
                                            http_headers=http_headers)
 
         return cls.get_rwinfo(record)
@@ -106,58 +111,62 @@ X-Archive-Orig-Transfer-Encoding: chunked\r\n\
         assert str(http_headers) == res
 
     def test_header_rewrite_binary(self):
-        headers = [('Content-Length', '200000'),
-                   ('Content-Type', 'image/png'),
+        headers = [('Content-Length', '200000'), ('Content-Type', 'image/png'),
                    ('Set-Cookie', 'foo=bar; Path=/; abc=123; Path=/path.html'),
                    ('Content-Encoding', 'gzip'),
-                   ('Transfer-Encoding', 'chunked'),
-                   ('X-Custom', 'test'),
+                   ('Transfer-Encoding', 'chunked'), ('X-Custom', 'test'),
                    ('Status', '200')]
 
         rwinfo = self.do_rewrite('200 OK', headers)
         http_headers = DefaultHeaderRewriter(rwinfo)()
 
-        assert(('Content-Length', '200000')) in http_headers.headers
-        assert(('Content-Type', 'image/png')) in http_headers.headers
+        assert (('Content-Length', '200000')) in http_headers.headers
+        assert (('Content-Type', 'image/png')) in http_headers.headers
 
-        assert(('Set-Cookie', 'foo=bar; Path=/warc/20171226/http://example.com/') in http_headers.headers)
-        assert(('Set-Cookie', 'abc=123; Path=/warc/20171226/http://example.com/path.html') in http_headers.headers)
+        assert (('Set-Cookie',
+                 'foo=bar; Path=/warc/20171226/http://example.com/')
+                in http_headers.headers)
+        assert (('Set-Cookie',
+                 'abc=123; Path=/warc/20171226/http://example.com/path.html')
+                in http_headers.headers)
 
-        assert(('Content-Encoding', 'gzip') in http_headers.headers)
-        assert(('X-Archive-Orig-Transfer-Encoding', 'chunked') in http_headers.headers)
-        assert(('X-Custom', 'test') in http_headers.headers)
+        assert (('Content-Encoding', 'gzip') in http_headers.headers)
+        assert (('X-Archive-Orig-Transfer-Encoding', 'chunked')
+                in http_headers.headers)
+        assert (('X-Custom', 'test') in http_headers.headers)
 
-        assert(('X-Archive-Orig-Status', '200') in http_headers.headers)
+        assert (('X-Archive-Orig-Status', '200') in http_headers.headers)
 
-        assert(len(http_headers.headers) == 8)
+        assert (len(http_headers.headers) == 8)
 
         assert rwinfo.text_type == None
         assert rwinfo.charset == None
 
 
-
 def _test_head_data(headers, status='200 OK', rewriter=None):
-    rewritten = headerrewriter.rewrite(StatusAndHeaders(status, headers),
-                                       rewriter,
+    rewritten = headerrewriter.rewrite(StatusAndHeaders(status,
+                                                        headers), rewriter,
                                        rewriter.get_cookie_rewriter())
     return rewritten.status_headers
-
 
 
 def _test_cookie_headers():
     # cookie, host/origin rewriting
     res = _test_head_data([('Connection', 'close'),
-                           ('Set-Cookie', 'foo=bar; Path=/; abc=def; Path=/somefile.html'),
+                           ('Set-Cookie',
+                            'foo=bar; Path=/; abc=def; Path=/somefile.html'),
                            ('Host', 'example.com'),
                            ('Origin', 'https://example.com')])
 
-    assert(('Set-Cookie', 'foo=bar; Path=/web/20131010/http://example.com/') in res.headers)
-    assert(('Set-Cookie', 'abc=def; Path=/web/20131010/http://example.com/somefile.html') in res.headers)
+    assert (('Set-Cookie', 'foo=bar; Path=/web/20131010/http://example.com/')
+            in res.headers)
+    assert (('Set-Cookie',
+             'abc=def; Path=/web/20131010/http://example.com/somefile.html')
+            in res.headers)
 
-    assert(('X-Archive-Orig-Connection', 'close') in res.headers)
-    assert(('X-Archive-Orig-Host', 'example.com') in res.headers)
-    assert(('X-Archive-Orig-Origin', 'https://example.com') in res.headers)
-
+    assert (('X-Archive-Orig-Connection', 'close') in res.headers)
+    assert (('X-Archive-Orig-Host', 'example.com') in res.headers)
+    assert (('X-Archive-Orig-Origin', 'https://example.com') in res.headers)
 
 
 def _make_cache_headers():
@@ -171,11 +180,12 @@ def _make_cache_headers():
 def _test_proxy_headers(http_cache=None):
     headers = _make_cache_headers()
     status = '200 OK'
-    rewriter = UrlRewriter('20131010/http://example.com/', '/pywb/',
+    rewriter = UrlRewriter('20131010/http://example.com/',
+                           '/pywb/',
                            rewrite_opts={'http_cache': http_cache})
 
-    rewritten = headerrewriter.rewrite(StatusAndHeaders(status, headers),
-                                       rewriter,
+    rewritten = headerrewriter.rewrite(StatusAndHeaders(status,
+                                                        headers), rewriter,
                                        rewriter.get_cookie_rewriter())
     return rewritten.status_headers
 
@@ -223,5 +233,3 @@ def _test_proxy_not_num():
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
-

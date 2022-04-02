@@ -9,6 +9,7 @@ from pywb.rewrite.content_rewriter import BufferedRewriter
 
 # ============================================================================
 class RewriteDASH(BufferedRewriter):
+
     def rewrite_stream(self, stream, rwinfo):
         res_buff, best_ids = self.rewrite_dash(stream, rwinfo)
         return res_buff
@@ -31,8 +32,10 @@ class RewriteDASH(BufferedRewriter):
                 best_resolution = 0
                 best_bandwidth = 0
 
-                for repres in adaptset.findall('mpd:Representation', namespaces):
-                    curr_resolution = int(repres.get('width', '0')) * int(repres.get('height', '0'))
+                for repres in adaptset.findall('mpd:Representation',
+                                               namespaces):
+                    curr_resolution = int(repres.get('width', '0')) * int(
+                        repres.get('height', '0'))
                     curr_bandwidth = int(repres.get('bandwidth', 0))
                     if curr_resolution and max_resolution:
                         if curr_resolution <= max_resolution and curr_resolution > best_resolution:
@@ -47,7 +50,8 @@ class RewriteDASH(BufferedRewriter):
                 if best is not None:
                     best_ids.append(best.get('id'))
 
-                for repres in adaptset.findall('mpd:Representation', namespaces):
+                for repres in adaptset.findall('mpd:Representation',
+                                               namespaces):
                     if repres != best:
                         adaptset.remove(repres)
 
@@ -59,7 +63,10 @@ class RewriteDASH(BufferedRewriter):
 
 # ============================================================================
 def rewrite_fb_dash(string, *args):
-    DASH_SPLITS = [r'\n",dash_prefetched_representation_ids:', r'\n","dash_prefetched_representation_ids":']
+    DASH_SPLITS = [
+        r'\n",dash_prefetched_representation_ids:',
+        r'\n","dash_prefetched_representation_ids":'
+    ]
 
     inx = -1
     split = None
@@ -86,6 +93,7 @@ def rewrite_fb_dash(string, *args):
     string += json.dumps(best_ids)
     return string
 
+
 def rewrite_tw_dash(string, *args):
     try:
         best_variant = None
@@ -111,4 +119,3 @@ def rewrite_tw_dash(string, *args):
         print(e)
 
     return string
-

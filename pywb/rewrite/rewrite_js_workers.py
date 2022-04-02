@@ -21,7 +21,8 @@ class JSWorkerRewriter(StreamingRewriter):
         :param str first_buff: The first string to be added to the rewrite
         :rtype: None
         """
-        super(JSWorkerRewriter, self).__init__(url_rewriter, align_to_line, first_buff)
+        super(JSWorkerRewriter, self).__init__(url_rewriter, align_to_line,
+                                               first_buff)
         wb_url = self.url_rewriter.wburl
         if wb_url.mod in WORKER_MODS:
             rw_url = self.url_rewriter.pywb_static_prefix + "wombatWorkers.js"

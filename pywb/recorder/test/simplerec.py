@@ -1,4 +1,6 @@
-from gevent import monkey; monkey.patch_all()
+from gevent import monkey
+
+monkey.patch_all()
 
 from pywb.recorder.recorderapp import RecorderApp
 from pywb.recorder.redisindexer import WritableRedisIndexer
@@ -10,6 +12,7 @@ import atexit
 import tempfile
 import redis
 import shutil
+
 
 def main():
     upstream_url = 'http://localhost:8080'
@@ -31,17 +34,18 @@ def main():
     #target = './_recordings/'
 
     dedup_index = WritableRedisIndexer(
-                    redis_url='redis://localhost/2/rec:cdxj',
-                    file_key_template='rec:warc',
-                    rel_path_template=target,
-                    dupe_policy=SkipDupePolicy())
+        redis_url='redis://localhost/2/rec:cdxj',
+        file_key_template='rec:warc',
+        rel_path_template=target,
+        dupe_policy=SkipDupePolicy())
 
     recorder_app = RecorderApp(upstream_url,
-                    MultiFileWARCWriter(target, dedup_index=dedup_index),
-                     accept_colls='live')
+                               MultiFileWARCWriter(target,
+                                                   dedup_index=dedup_index),
+                               accept_colls='live')
 
     return recorder_app
 
+
 if __name__ == '__main__':
     application = main()
-

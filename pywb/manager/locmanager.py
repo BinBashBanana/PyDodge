@@ -7,15 +7,16 @@ from babel.messages.frontend import CommandLineInterface
 from translate.convert.po2csv import main as po2csv
 from translate.convert.csv2po import main as csv2po
 
-
 ROOT_DIR = 'i18n'
 
 TRANSLATIONS = os.path.join(ROOT_DIR, 'translations')
 
 MESSAGES = os.path.join(ROOT_DIR, 'messages.pot')
 
+
 # ============================================================================
 class LocManager:
+
     def process(self, r):
         if r.name == 'list':
             r.loc_func(self)
@@ -74,17 +75,23 @@ class LocManager:
     def extract_text(self):
         os.makedirs(ROOT_DIR, exist_ok=True)
 
-        CommandLineInterface().run(['pybabel', 'extract', '-F', 'babel.ini', '-k', '_ _Q gettext ngettext', '-o', MESSAGES, './', '--omit-header'])
+        CommandLineInterface().run([
+            'pybabel', 'extract', '-F', 'babel.ini', '-k',
+            '_ _Q gettext ngettext', '-o', MESSAGES, './', '--omit-header'
+        ])
 
     def init_catalog(self, loc):
-        CommandLineInterface().run(['pybabel', 'init', '-l', loc, '-i', MESSAGES, '-d', TRANSLATIONS])
+        CommandLineInterface().run(
+            ['pybabel', 'init', '-l', loc, '-i', MESSAGES, '-d', TRANSLATIONS])
 
     def update_catalog(self, loc):
-        CommandLineInterface().run(['pybabel', 'update', '-l', loc, '-i', MESSAGES, '-d', TRANSLATIONS, '--previous'])
+        CommandLineInterface().run([
+            'pybabel', 'update', '-l', loc, '-i', MESSAGES, '-d', TRANSLATIONS,
+            '--previous'
+        ])
 
     def compile_catalog(self):
         CommandLineInterface().run(['pybabel', 'compile', '-d', TRANSLATIONS])
-
 
     @classmethod
     def init_parser(cls, parser):

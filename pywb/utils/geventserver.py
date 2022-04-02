@@ -9,7 +9,11 @@ from gevent.pywsgi import WSGIHandler, WSGIServer
 class GeventServer(object):
     """Class for optionally running a WSGI application in a greenlet"""
 
-    def __init__(self, app, port=0, hostname='localhost', handler_class=None,
+    def __init__(self,
+                 app,
+                 port=0,
+                 hostname='localhost',
+                 handler_class=None,
                  direct=False):
         """Initialize a new GeventServer instance
 

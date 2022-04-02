@@ -7,6 +7,7 @@ from pywb.warcserver.index.indexsource import BaseIndexSource
 
 # ============================================================================
 class EchoParamsSource(BaseIndexSource):
+
     def load_index(self, params):
         # return nothing for exact match to force fuzzy
         if params.get('matchType', 'exact') == 'exact':
@@ -15,43 +16,50 @@ class EchoParamsSource(BaseIndexSource):
         assert params.get('is_fuzzy') == '1'
         assert params.get('limit') == '100'
 
-        cdx = {'urlkey': canonicalize(params.get('cdx_url')),
-               'mime': params.get('mime'),
-               'filter': params.get('filter'),
-               'url': params.get('cdx_url'),
-              }
+        cdx = {
+            'urlkey': canonicalize(params.get('cdx_url')),
+            'mime': params.get('mime'),
+            'filter': params.get('filter'),
+            'url': params.get('cdx_url'),
+        }
 
         return iter([cdx])
 
 
 # ============================================================================
 class TestFuzzy(object):
+
     @classmethod
     def setup_class(cls):
         cls.source = SimpleAggregator({'source': EchoParamsSource()})
         cls.fuzzy = FuzzyMatcher()
 
     def get_params(self, url, actual_url, mime='text/html'):
-        params = {'url': url,
-                  'cdx_url': actual_url,
-                  'key': canonicalize(url),
-                  'mime': mime}
+        params = {
+            'url': url,
+            'cdx_url': actual_url,
+            'key': canonicalize(url),
+            'mime': mime
+        }
         return params
 
     def get_expected(self, url, mime='text/html', filters=None):
         filters = filters or {'urlkey:'}
-        exp = [{'filter': filters,
-               'is_fuzzy': '1',
-               'urlkey': canonicalize(url),
-               'source': 'source',
-               'source-coll': 'source',
-               'url': url,
-               'mime': mime}]
+        exp = [{
+            'filter': filters,
+            'is_fuzzy': '1',
+            'urlkey': canonicalize(url),
+            'source': 'source',
+            'source-coll': 'source',
+            'url': url,
+            'mime': mime
+        }]
 
         return exp
 
     def test_no_fuzzy(self):
-        params = self.get_params('http://example.com/', 'http://example.com/foo')
+        params = self.get_params('http://example.com/',
+                                 'http://example.com/foo')
         cdx_iter, errs = self.fuzzy(self.source, params)
         assert list(cdx_iter) == []
 
@@ -112,18 +120,20 @@ class TestFuzzy(object):
         params = self.get_params(url, actual_url)
         cdx_iter, errs = self.fuzzy(self.source, params)
         filters = {'urlkey:html5=true', 'urlkey:video_id=abcd'}
-        assert list(cdx_iter) == self.get_expected(url=actual_url, filters=filters)
+        assert list(cdx_iter) == self.get_expected(url=actual_url,
+                                                   filters=filters)
 
     def test_fuzzy_custom_rule_yt_2(self):
         url = 'https://r1---sn-xyz.googlevideo.com/videoplayback?id=ABCDEFG&itag=22&food=abc'
         actual_url = 'https://r1---sn-abcdefg.googlevideo.com/videoplayback?id=ABCDEFG&itag=22&foo=abc&_1=2'
         params = self.get_params(url, actual_url)
         cdx_iter, errs = self.fuzzy(self.source, params)
-        filters = {'urlkey:id=abcdefg',
-                   'urlkey:itag=22',
-                   '!mimetype:text/plain'}
+        filters = {
+            'urlkey:id=abcdefg', 'urlkey:itag=22', '!mimetype:text/plain'
+        }
 
-        assert list(cdx_iter) == self.get_expected(url=actual_url, filters=filters)
+        assert list(cdx_iter) == self.get_expected(url=actual_url,
+                                                   filters=filters)
 
     def test_fuzzy_find_all_rule(self):
         url = 'http://facebook.com/ajax/pagelet/generic.php/photoviewerpagelet?data={"cursor":"ABC","food":"bar","cursorindex":6,"A":12345,"B":"foo"}'
@@ -131,10 +141,10 @@ class TestFuzzy(object):
 
         params = self.get_params(url, actual_url)
         cdx_iter, errs = self.fuzzy(self.source, params)
-        filters = {'urlkey:"cursor":"abc"',
-                   'urlkey:"cursorindex":6'}
+        filters = {'urlkey:"cursor":"abc"', 'urlkey:"cursorindex":6'}
 
-        assert list(cdx_iter) == self.get_expected(url=actual_url, filters=filters)
+        assert list(cdx_iter) == self.get_expected(url=actual_url,
+                                                   filters=filters)
 
     def test_fuzzy_bar_baz_with_ext(self):
         url = 'http://example.com/foo/bar.png?abc'
@@ -231,6 +241,8 @@ class TestFuzzy(object):
     def test_fuzzy_no_deep_path_mime_match(self):
         url = 'http://www.website.co.br/~dinosaurs/t'
         actual_url = 'http://www.website.co.br/~dinosaurs/t/path2/deep-down/what.swf'
-        params = self.get_params(url, actual_url, mime='application/x-shockwave-flash')
+        params = self.get_params(url,
+                                 actual_url,
+                                 mime='application/x-shockwave-flash')
         cdx_iter, errs = self.fuzzy(self.source, params)
         assert list(cdx_iter) == []

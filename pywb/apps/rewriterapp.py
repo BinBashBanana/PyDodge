@@ -31,7 +31,11 @@ class RewriterApp(object):
 
     DEFAULT_CSP = "default-src 'unsafe-eval' 'unsafe-inline' 'self' data: blob: mediastream: ws: wss: ; form-action 'self'"
 
-    def __init__(self, framed_replay=False, jinja_env=None, config=None, paths=None):
+    def __init__(self,
+                 framed_replay=False,
+                 jinja_env=None,
+                 config=None,
+                 paths=None):
         """Initialize a new instance of RewriterApp
 
         :param bool framed_replay: Is rewriting happening in framed replay mode
@@ -63,33 +67,37 @@ class RewriterApp(object):
         self.js_proxy_rw = RewriterWithJSProxy(replay_mod=self.replay_mod)
 
         if not jinja_env:
-            jinja_env = JinjaEnv(globals={'static_path': 'static'},
-                                 extensions=['jinja2.ext.i18n', 'jinja2.ext.with_'])
+            jinja_env = JinjaEnv(
+                globals={'static_path': 'static'},
+                extensions=['jinja2.ext.i18n', 'jinja2.ext.with_'])
             jinja_env.jinja_env.install_null_translations()
 
         self.jinja_env = jinja_env
         self.loc_map = {}
 
         self.jinja_env.init_loc(self.config.get('locales_root_dir'),
-                                self.config.get('locales'),
-                                self.loc_map,
+                                self.config.get('locales'), self.loc_map,
                                 self.config.get('default_locale'))
 
         self.redirect_to_exact = config.get('redirect_to_exact')
 
-        self.banner_view = BaseInsertView(self.jinja_env, self._html_templ('banner_html'))
+        self.banner_view = BaseInsertView(self.jinja_env,
+                                          self._html_templ('banner_html'))
 
-        self.head_insert_view = HeadInsertView(self.jinja_env,
-                                               self._html_templ('head_insert_html'),
-                                               self.banner_view)
+        self.head_insert_view = HeadInsertView(
+            self.jinja_env, self._html_templ('head_insert_html'),
+            self.banner_view)
 
-        self.frame_insert_view = TopFrameView(self.jinja_env,
-                                              self._html_templ('frame_insert_html'),
-                                              self.banner_view)
+        self.frame_insert_view = TopFrameView(
+            self.jinja_env, self._html_templ('frame_insert_html'),
+            self.banner_view)
 
-        self.error_view = BaseInsertView(self.jinja_env, self._html_templ('error_html'))
-        self.not_found_view = BaseInsertView(self.jinja_env, self._html_templ('not_found_html'))
-        self.query_view = BaseInsertView(self.jinja_env, self._html_templ('query_html'))
+        self.error_view = BaseInsertView(self.jinja_env,
+                                         self._html_templ('error_html'))
+        self.not_found_view = BaseInsertView(
+            self.jinja_env, self._html_templ('not_found_html'))
+        self.query_view = BaseInsertView(self.jinja_env,
+                                         self._html_templ('query_html'))
 
         self.use_js_obj_proxy = config.get('use_js_obj_proxy', True)
 
@@ -154,9 +162,8 @@ class RewriterApp(object):
         :return: T/F if in framed replay mode
         :rtype: bool
         """
-        return (self.framed_replay and
-                wb_url.mod == self.frame_mod and
-                wb_url.is_replay())
+        return (self.framed_replay and wb_url.mod == self.frame_mod
+                and wb_url.is_replay())
 
     def _check_accept_dt(self, wb_url, environ):
         """Returns T/F indicating if the supplied WbUrl instance
@@ -175,7 +182,9 @@ class RewriterApp(object):
                 try:
                     wb_url.timestamp = http_date_to_timestamp(accept_dt)
                 except Exception:
-                    raise UpstreamException(400, url=wb_url.url, details='Invalid Accept-Datetime')
+                    raise UpstreamException(400,
+                                            url=wb_url.url,
+                                            details='Invalid Accept-Datetime')
                     # return WbResponse.text_response('Invalid Accept-Datetime', status='400 Bad Request')
 
                 wb_url.type = wb_url.REPLAY
@@ -208,7 +217,9 @@ class RewriterApp(object):
         mod = content_rw.prefer_to_mod(prefer)
 
         if mod is None:
-            raise UpstreamException(400, url=wb_url.url, details='Invalid Prefer: ' + prefer)
+            raise UpstreamException(400,
+                                    url=wb_url.url,
+                                    details='Invalid Prefer: ' + prefer)
 
         if is_proxy and mod == self.replay_mod:
             mod = 'bn_'
@@ -262,8 +273,7 @@ class RewriterApp(object):
         if record.http_headers.get_statuscode() != '200':
             return
 
-        content_length = (record.http_headers.
-                          get_header('Content-Length'))
+        content_length = (record.http_headers.get_header('Content-Length'))
 
         if content_length is None:
             return
@@ -276,16 +286,19 @@ class RewriterApp(object):
                 range_end = content_length - 1
 
             if range_start >= content_length or range_end >= content_length:
-                details = 'Invalid Range: {0} >= {2} or {1} >= {2}'.format(range_start, range_end, content_length)
+                details = 'Invalid Range: {0} >= {2} or {1} >= {2}'.format(
+                    range_start, range_end, content_length)
                 raise UpstreamException(416, url=wb_url.url, details=details)
 
             range_len = range_end - range_start + 1
             record.http_headers.add_range(range_start, range_len,
                                           content_length)
 
-            record.http_headers.replace_header('Content-Length', str(range_len))
+            record.http_headers.replace_header('Content-Length',
+                                               str(range_len))
 
-            record.raw_stream = OffsetLimitReader(record.raw_stream, range_start, range_len)
+            record.raw_stream = OffsetLimitReader(record.raw_stream,
+                                                  range_start, range_len)
             return True
 
         except (ValueError, TypeError):
@@ -299,7 +312,8 @@ class RewriterApp(object):
                                          '307 Temporary Redirect')
 
         if self.enable_memento:
-            resp.status_headers['Link'] = MementoUtils.make_link(url, 'original')
+            resp.status_headers['Link'] = MementoUtils.make_link(
+                url, 'original')
 
         return resp
 
@@ -317,7 +331,8 @@ class RewriterApp(object):
 
         environ['pywb.host_prefix'] = self.get_host_prefix(environ)
         environ['pywb.app_prefix'] = environ.get('SCRIPT_NAME', '')
-        environ['pywb.static_prefix'] = environ['pywb.host_prefix'] + environ['pywb.app_prefix'] + '/' + self.static_prefix
+        environ['pywb.static_prefix'] = environ['pywb.host_prefix'] + environ[
+            'pywb.app_prefix'] + '/' + self.static_prefix
 
     def render_content(self, wb_url, kwargs, environ):
         wb_url = wb_url.replace('#', '%23')
@@ -378,20 +393,22 @@ class RewriterApp(object):
                 response = self.handle_timemap(wb_url, kwargs, full_prefix)
 
             elif wb_url.is_query():
-                response = self.handle_query(environ, wb_url, kwargs, full_prefix)
+                response = self.handle_query(environ, wb_url, kwargs,
+                                             full_prefix)
 
             else:
                 # don't return top-frame response for timegate with exact redirects
                 if not (is_timegate and redirect_to_exact):
-                    response = self.handle_custom_response(environ, wb_url,
-                                                           full_prefix, host_prefix,
-                                                           kwargs)
+                    response = self.handle_custom_response(
+                        environ, wb_url, full_prefix, host_prefix, kwargs)
 
-                    keep_frame_response = not kwargs.get('no_timegate_check') and is_timegate and not redirect_to_exact and not is_proxy
-
+                    keep_frame_response = not kwargs.get(
+                        'no_timegate_check'
+                    ) and is_timegate and not redirect_to_exact and not is_proxy
 
         if response and not keep_frame_response:
-            return self.format_response(response, wb_url, full_prefix, is_timegate, is_proxy)
+            return self.format_response(response, wb_url, full_prefix,
+                                        is_timegate, is_proxy)
 
         if is_proxy:
             environ['pywb_proxy_magic'] = environ['wsgiprox.proxy_host']
@@ -419,17 +436,17 @@ class RewriterApp(object):
 
         inputreq.include_method_query(wb_url.url)
 
-        range_start, range_end, skip_record = self._check_range(inputreq, wb_url)
+        range_start, range_end, skip_record = self._check_range(
+            inputreq, wb_url)
 
         setcookie_headers = None
         cookie_key = None
         if self.cookie_tracker:
             cookie_key = self.get_cookie_key(kwargs)
             if cookie_key:
-                res = self.cookie_tracker.get_cookie_headers(wb_url.url,
-                                                             urlrewriter,
-                                                             cookie_key,
-                                                             environ.get('HTTP_COOKIE', ''))
+                res = self.cookie_tracker.get_cookie_headers(
+                    wb_url.url, urlrewriter, cookie_key,
+                    environ.get('HTTP_COOKIE', ''))
                 inputreq.extra_cookie, setcookie_headers = res
 
         r = self._do_req(inputreq, wb_url, kwargs, skip_record)
@@ -453,13 +470,16 @@ class RewriterApp(object):
                 raise NotFoundException(url=wb_url.url, msg=details)
 
             else:
-                raise UpstreamException(r.status_code, url=wb_url.url, details=details)
+                raise UpstreamException(r.status_code,
+                                        url=wb_url.url,
+                                        details=details)
 
         cdx = CDXObject(r.headers.get('Warcserver-Cdx').encode('utf-8'))
 
         cdx_url_parts = urlsplit(cdx['url'])
 
-        if cdx_url_parts.path.endswith('/') and not url_parts.path.endswith('/'):
+        if cdx_url_parts.path.endswith(
+                '/') and not url_parts.path.endswith('/'):
             # add trailing slash
             new_path = url_parts.path + '/'
 
@@ -470,7 +490,9 @@ class RewriterApp(object):
         # return top-frame timegate response, with timestamp from cdx
         if response and keep_frame_response:
             no_except_close(r.raw)
-            return self.format_response(response, wb_url, full_prefix, is_timegate, is_proxy, cdx['timestamp'])
+            return self.format_response(response, wb_url, full_prefix,
+                                        is_timegate, is_proxy,
+                                        cdx['timestamp'])
 
         stream = BufferedReader(r.raw, block_size=BUFF_SIZE)
         record = self.loader.parse_record_stream(stream,
@@ -491,24 +513,30 @@ class RewriterApp(object):
 
         # if redirect to exact timestamp, bit only if not live
         if redirect_to_exact and not cdx.get('is_live'):
-            if set_content_loc or is_timegate or wb_url.timestamp != cdx.get('timestamp'):
+            if set_content_loc or is_timegate or wb_url.timestamp != cdx.get(
+                    'timestamp'):
                 new_url = urlrewriter.get_new_url(url=target_uri,
                                                   timestamp=cdx['timestamp'],
                                                   mod=wb_url.mod)
 
-                resp = WbResponse.redir_response(new_url, '307 Temporary Redirect')
+                resp = WbResponse.redir_response(new_url,
+                                                 '307 Temporary Redirect')
                 if self.enable_memento:
                     if is_timegate and not is_proxy:
-                        self._add_memento_links(target_uri, full_prefix,
-                                                memento_dt, cdx['timestamp'],
+                        self._add_memento_links(target_uri,
+                                                full_prefix,
+                                                memento_dt,
+                                                cdx['timestamp'],
                                                 resp.status_headers,
-                                                is_timegate, is_proxy,
+                                                is_timegate,
+                                                is_proxy,
                                                 pref_applied=pref_applied,
                                                 mod=pref_mod,
                                                 is_memento=False)
 
                     else:
-                        resp.status_headers['Link'] = MementoUtils.make_link(target_uri, 'original')
+                        resp.status_headers['Link'] = MementoUtils.make_link(
+                            target_uri, 'original')
 
                 return resp
 
@@ -522,17 +550,17 @@ class RewriterApp(object):
             urlrewriter.rewrite_opts['is_ajax'] = True
         else:
             top_url = self.get_top_url(full_prefix, wb_url, cdx, kwargs)
-            head_insert_func = (self.head_insert_view.
-                                create_insert_func(wb_url,
-                                                   full_prefix,
-                                                   host_prefix,
-                                                   top_url,
-                                                   environ,
-                                                   framed_replay,
-                                                   coll=kwargs.get('coll', ''),
-                                                   replay_mod=self.replay_mod,
-                                                   metadata=kwargs.get('metadata', {}),
-                                                   config=self.config))
+            head_insert_func = (self.head_insert_view.create_insert_func(
+                wb_url,
+                full_prefix,
+                host_prefix,
+                top_url,
+                environ,
+                framed_replay,
+                coll=kwargs.get('coll', ''),
+                replay_mod=self.replay_mod,
+                metadata=kwargs.get('metadata', {}),
+                config=self.config))
 
         cookie_rewriter = None
         if self.cookie_tracker and cookie_key:
@@ -541,12 +569,13 @@ class RewriterApp(object):
             if wb_url.mod == 'sw_':
                 cookie_key = None
 
-            cookie_rewriter = self.cookie_tracker.get_rewriter(urlrewriter,
-                                                               cookie_key)
+            cookie_rewriter = self.cookie_tracker.get_rewriter(
+                urlrewriter, cookie_key)
 
         urlrewriter.rewrite_opts['ua_string'] = environ.get('HTTP_USER_AGENT')
 
-        result = content_rw(record, urlrewriter, cookie_rewriter, head_insert_func, cdx, environ)
+        result = content_rw(record, urlrewriter, cookie_rewriter,
+                            head_insert_func, cdx, environ)
 
         status_headers, gen, is_rw = result
 
@@ -568,16 +597,24 @@ class RewriterApp(object):
             status_headers.statusline += ' None'
 
         if not is_ajax and self.enable_memento:
-            self._add_memento_links(cdx['url'], full_prefix,
-                                    memento_dt, cdx['timestamp'], status_headers,
-                                    is_timegate, is_proxy, cdx.get('source-coll'),
-                                    mod=pref_mod, pref_applied=pref_applied)
+            self._add_memento_links(cdx['url'],
+                                    full_prefix,
+                                    memento_dt,
+                                    cdx['timestamp'],
+                                    status_headers,
+                                    is_timegate,
+                                    is_proxy,
+                                    cdx.get('source-coll'),
+                                    mod=pref_mod,
+                                    pref_applied=pref_applied)
 
             set_content_loc = True
 
         if set_content_loc and not redirect_to_exact and not is_proxy:
-            status_headers.headers.append(('Content-Location', urlrewriter.get_new_url(timestamp=cdx['timestamp'],
-                                                                                       url=cdx['url'])))
+            status_headers.headers.append(
+                ('Content-Location',
+                 urlrewriter.get_new_url(timestamp=cdx['timestamp'],
+                                         url=cdx['url'])))
 
         if not is_proxy:
             self.add_csp_header(wb_url, status_headers)
@@ -587,12 +624,20 @@ class RewriterApp(object):
         if is_proxy and environ.get('HTTP_ORIGIN'):
             response.add_access_control_headers(environ)
 
-        if r.status_code == 200 and kwargs.get('cache') == 'always' and environ.get('HTTP_REFERER'):
-            response.status_headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        if r.status_code == 200 and kwargs.get(
+                'cache') == 'always' and environ.get('HTTP_REFERER'):
+            response.status_headers[
+                'Cache-Control'] = 'public, max-age=31536000, immutable'
 
         return response
 
-    def format_response(self, response, wb_url, full_prefix, is_timegate, is_proxy, timegate_closest_ts=None):
+    def format_response(self,
+                        response,
+                        wb_url,
+                        full_prefix,
+                        is_timegate,
+                        is_proxy,
+                        timegate_closest_ts=None):
         memento_ts = None
         if not isinstance(response, WbResponse):
             content_type = 'text/html'
@@ -603,16 +648,33 @@ class RewriterApp(object):
             else:
                 memento_ts = timegate_closest_ts or wb_url.timestamp
 
-            response = WbResponse.text_response(response, content_type=content_type)
+            response = WbResponse.text_response(response,
+                                                content_type=content_type)
 
-        if self.enable_memento and response.status_headers.statusline.startswith('200'):
-            self._add_memento_links(wb_url.url, full_prefix, None, memento_ts,
-                                    response.status_headers, is_timegate, is_proxy, is_memento=not is_timegate)
+        if self.enable_memento and response.status_headers.statusline.startswith(
+                '200'):
+            self._add_memento_links(wb_url.url,
+                                    full_prefix,
+                                    None,
+                                    memento_ts,
+                                    response.status_headers,
+                                    is_timegate,
+                                    is_proxy,
+                                    is_memento=not is_timegate)
         return response
 
-    def _add_memento_links(self, url, full_prefix, memento_dt, memento_ts,
-                           status_headers, is_timegate, is_proxy, coll=None,
-                           pref_applied=None, mod=None, is_memento=True):
+    def _add_memento_links(self,
+                           url,
+                           full_prefix,
+                           memento_dt,
+                           memento_ts,
+                           status_headers,
+                           is_timegate,
+                           is_proxy,
+                           coll=None,
+                           pref_applied=None,
+                           mod=None,
+                           is_memento=True):
         """Adds the memento link headers to supplied StatusAndHeaders instance
 
         :param str url: The URI-R being rewritten
@@ -647,7 +709,8 @@ class RewriterApp(object):
         else:
             memento_url = None
 
-        timegate_url, timemap_url = self._get_timegate_timemap(url, full_prefix, mod)
+        timegate_url, timemap_url = self._get_timegate_timemap(
+            url, full_prefix, mod)
 
         link = []
         if not is_proxy:
@@ -656,7 +719,9 @@ class RewriterApp(object):
             link.append(MementoUtils.make_link(timemap_url, 'timemap'))
 
         if memento_dt:
-            link.append(MementoUtils.make_memento_link(memento_url, 'memento', memento_dt, coll))
+            link.append(
+                MementoUtils.make_memento_link(memento_url, 'memento',
+                                               memento_dt, coll))
 
         link_str = ', '.join(link)
 
@@ -697,9 +762,13 @@ class RewriterApp(object):
             return self._error_response(environ, wbe)
 
     def _not_found_response(self, environ, url):
-        resp = self.not_found_view.render_to_string(environ, url=url, err_msg="Not Found")
+        resp = self.not_found_view.render_to_string(environ,
+                                                    url=url,
+                                                    err_msg="Not Found")
 
-        return WbResponse.text_response(resp, status='404 Not Found', content_type='text/html')
+        return WbResponse.text_response(resp,
+                                        status='404 Not Found',
+                                        content_type='text/html')
 
     def _error_response(self, environ, wbe):
         status = wbe.status()
@@ -709,13 +778,17 @@ class RewriterApp(object):
                                                 err_details=wbe.msg,
                                                 err_status=wbe.status_code)
 
-        return WbResponse.text_response(resp, status=status, content_type='text/html')
+        return WbResponse.text_response(resp,
+                                        status=status,
+                                        content_type='text/html')
 
     def _do_req(self, inputreq, wb_url, kwargs, skip_record):
         req_data = inputreq.reconstruct_request(wb_url.url)
 
-        headers = {'Content-Length': str(len(req_data)),
-                   'Content-Type': 'application/request'}
+        headers = {
+            'Content-Length': str(len(req_data)),
+            'Content-Type': 'application/request'
+        }
 
         headers.update(inputreq.warcserver_headers)
 
@@ -782,27 +855,26 @@ class RewriterApp(object):
             status = str(res.status_code) + ' ' + res.reason
 
             if res.status_code == 200 and output == 'link':
-                timegate, timemap = self._get_timegate_timemap(wb_url.url, full_prefix, wb_url.mod)
+                timegate, timemap = self._get_timegate_timemap(
+                    wb_url.url, full_prefix, wb_url.mod)
 
-                text = MementoUtils.wrap_timemap_header(wb_url.url,
-                                                        timegate,
-                                                        timemap,
-                                                        res.text)
+                text = MementoUtils.wrap_timemap_header(
+                    wb_url.url, timegate, timemap, res.text)
         return WbResponse.text_response(text,
                                         content_type=content_type,
                                         status=status)
 
     def handle_timemap(self, wb_url, kwargs, full_prefix):
         output = kwargs.get('output')
-        kwargs['memento_format'] = full_prefix + '{timestamp}' + self.replay_mod + '/{url}'
+        kwargs[
+            'memento_format'] = full_prefix + '{timestamp}' + self.replay_mod + '/{url}'
         res = self.do_query(wb_url, kwargs)
         return self.make_timemap(wb_url, res, full_prefix, output)
 
     def handle_query(self, environ, wb_url, kwargs, full_prefix):
         prefix = self.get_full_prefix(environ)
 
-        params = dict(url=wb_url.url,
-                      prefix=prefix)
+        params = dict(url=wb_url.url, prefix=prefix)
 
         return self.query_view.render_to_string(environ, **params)
 
@@ -856,7 +928,6 @@ class RewriterApp(object):
         if value and value.lower() == 'xmlhttprequest':
             return True
 
-
         # additional checks for proxy mode only
         if not ('wsgiprox.proxy_host' in environ):
             return False
@@ -876,11 +947,12 @@ class RewriterApp(object):
         if not environ.get('HTTP_ORIGIN'):
             return False
 
-        if not environ.get('HTTP_ACCESS_CONTROL_REQUEST_METHOD') and not environ.get('HTTP_ACCESS_CONTROL_REQUEST_HEADERS'):
+        if not environ.get(
+                'HTTP_ACCESS_CONTROL_REQUEST_METHOD') and not environ.get(
+                    'HTTP_ACCESS_CONTROL_REQUEST_HEADERS'):
             return False
 
         return True
-
 
     def get_base_url(self, wb_url, kwargs):
         type_ = kwargs.get('type')
@@ -911,16 +983,18 @@ class RewriterApp(object):
     def get_top_frame_params(self, wb_url, kwargs):
         return {'metadata': kwargs.get('metadata', {})}
 
-    def handle_custom_response(self, environ, wb_url, full_prefix, host_prefix, kwargs):
+    def handle_custom_response(self, environ, wb_url, full_prefix, host_prefix,
+                               kwargs):
         if self.is_framed_replay(wb_url):
             extra_params = self.get_top_frame_params(wb_url, kwargs)
-            return self.frame_insert_view.get_top_frame(wb_url,
-                                                        full_prefix,
-                                                        host_prefix,
-                                                        environ,
-                                                        self.frame_mod,
-                                                        self.replay_mod,
-                                                        coll='',
-                                                        extra_params=extra_params)
+            return self.frame_insert_view.get_top_frame(
+                wb_url,
+                full_prefix,
+                host_prefix,
+                environ,
+                self.frame_mod,
+                self.replay_mod,
+                coll='',
+                extra_params=extra_params)
 
         return None

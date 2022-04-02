@@ -12,8 +12,8 @@ class UrlRewriter(object):
     instance and an optional full path prefix
     """
 
-    NO_REWRITE_URI_PREFIX = ('#', 'javascript:', 'data:',
-                             'mailto:', 'about:', 'file:', '{')
+    NO_REWRITE_URI_PREFIX = ('#', 'javascript:', 'data:', 'mailto:', 'about:',
+                             'file:', '{')
 
     PROTOCOLS = ('http:', 'https:', 'ftp:', 'mms:', 'rtsp:', 'wais:')
 
@@ -22,8 +22,15 @@ class UrlRewriter(object):
     PARENT_PATH = '../'
     REL_PATH = '/'
 
-    def __init__(self, wburl, prefix='', full_prefix=None, rel_prefix=None,
-                 root_path=None, cookie_scope=None, rewrite_opts=None, pywb_static_prefix=None):
+    def __init__(self,
+                 wburl,
+                 prefix='',
+                 full_prefix=None,
+                 rel_prefix=None,
+                 root_path=None,
+                 cookie_scope=None,
+                 rewrite_opts=None,
+                 pywb_static_prefix=None):
         self.wburl = wburl if isinstance(wburl, WbUrl) else WbUrl(wburl)
         self.prefix = prefix
         self.full_prefix = full_prefix or prefix
@@ -33,7 +40,8 @@ class UrlRewriter(object):
             self.prefix_scheme = self.full_prefix.split(':')[0]
         else:
             self.prefix_scheme = None
-        self.prefix_abs = self.prefix and self.prefix.startswith(self.PROTOCOLS)
+        self.prefix_abs = self.prefix and self.prefix.startswith(
+            self.PROTOCOLS)
         self.cookie_scope = cookie_scope
         self.rewrite_opts = rewrite_opts or {}
         self._pywb_static_prefix = pywb_static_prefix
@@ -57,14 +65,12 @@ class UrlRewriter(object):
         if url.startswith(self.NO_REWRITE_URI_PREFIX):
             return url
 
-        if (self.prefix and
-             self.prefix != '/' and
-             url.startswith(self.prefix)):
+        if (self.prefix and self.prefix != '/'
+                and url.startswith(self.prefix)):
             return url
 
-        if (self.full_prefix and
-             self.full_prefix != self.prefix and
-             url.startswith(self.full_prefix)):
+        if (self.full_prefix and self.full_prefix != self.prefix
+                and url.startswith(self.full_prefix)):
             return url
 
         wburl = self.wburl
@@ -75,9 +81,9 @@ class UrlRewriter(object):
         if url.startswith(self.REL_SCHEME):
             is_abs = True
             scheme_rel = True
-        elif (not force_abs and not is_abs and
-              not url.startswith(self.REL_PATH) and
-              self.PARENT_PATH not in url):
+        elif (not force_abs and not is_abs
+              and not url.startswith(self.REL_PATH)
+              and self.PARENT_PATH not in url):
             return url
 
             # if prefix starts with a scheme
@@ -96,7 +102,8 @@ class UrlRewriter(object):
 
         final_url = self.prefix + wburl.to_str(mod=mod, url=new_url)
 
-        if not is_abs and self.prefix_abs and not self.rewrite_opts.get('no_match_rel'):
+        if not is_abs and self.prefix_abs and not self.rewrite_opts.get(
+                'no_match_rel'):
             parts = final_url.split('/', 3)
             final_url = '/'
             if len(parts) == 4:
@@ -177,6 +184,7 @@ class IdentityUrlRewriter(UrlRewriter):
     """
     No rewriting performed, return original url
     """
+
     def rewrite(self, url, mod=None, force_abs=False):
         return url
 
@@ -214,4 +222,3 @@ class SchemeOnlyUrlRewriter(IdentityUrlRewriter):
             url = self.url_scheme + url[len(self.opposite_scheme):]
 
         return url
-

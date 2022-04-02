@@ -6,7 +6,9 @@ from pywb.rewrite.content_rewriter import StreamingRewriter
 class JSONPRewriter(StreamingRewriter):
     #JSONP = re.compile(r'^(?:\s*\/\*(?:.*)\*\/)*\s*(\w+)\(\{')
     # Match a single /* and // style comments at the beginning
-    JSONP = re.compile(r'(?:^[ \t]*(?:(?:\/\*[^\*]*\*\/)|(?:\/\/[^\n]+[\n])))*[ \t]*(\w+)\(\{', re.M)
+    JSONP = re.compile(
+        r'(?:^[ \t]*(?:(?:\/\*[^\*]*\*\/)|(?:\/\/[^\n]+[\n])))*[ \t]*(\w+)\(\{',
+        re.M)
     CALLBACK = re.compile(r'[?].*callback=([^&]+)')
 
     def rewrite(self, string):
@@ -28,4 +30,3 @@ class JSONPRewriter(StreamingRewriter):
 
         string = m_callback.group(1) + string[m_json.end(1):]
         return string
-

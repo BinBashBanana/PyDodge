@@ -242,25 +242,72 @@ def cdx_ops_test(*args, **kwargs):
         sys.stdout.write(l)
 
 
-
 def test_cdxj_resolve_revisit():
     # Resolve Revisit -- cdxj minimal -- output also json
-    results = cdx_ops_test_data(url = 'http://example.com/?example=1', sources={'example': get_test_dir() + 'cdxj/example.cdxj'}, resolveRevisits=True)
-    assert(len(results) == 2)
-    assert(dict(results[0]) == {"urlkey": "com,example)/?example=1", "timestamp": "20140103030321", "url": "http://example.com?example=1", "length": "1043", "filename": "example.warc.gz", "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A", "offset": "333", "orig.length": "-", "orig.offset": "-", "orig.filename": "-"})
+    results = cdx_ops_test_data(
+        url='http://example.com/?example=1',
+        sources={'example': get_test_dir() + 'cdxj/example.cdxj'},
+        resolveRevisits=True)
+    assert (len(results) == 2)
+    assert (dict(results[0]) == {
+        "urlkey": "com,example)/?example=1",
+        "timestamp": "20140103030321",
+        "url": "http://example.com?example=1",
+        "length": "1043",
+        "filename": "example.warc.gz",
+        "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A",
+        "offset": "333",
+        "orig.length": "-",
+        "orig.offset": "-",
+        "orig.filename": "-"
+    })
 
-    assert(dict(results[1]) == {"urlkey": "com,example)/?example=1", "timestamp": "20140103030341", "url": "http://example.com?example=1", "filename": "example.warc.gz", "length": "553", "mime": "", "offset": "1864", "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A", "orig.length": "1043", "orig.offset": "333", "orig.filename": "example.warc.gz"})
-
+    assert (dict(results[1]) == {
+        "urlkey": "com,example)/?example=1",
+        "timestamp": "20140103030341",
+        "url": "http://example.com?example=1",
+        "filename": "example.warc.gz",
+        "length": "553",
+        "mime": "",
+        "offset": "1864",
+        "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A",
+        "orig.length": "1043",
+        "orig.offset": "333",
+        "orig.filename": "example.warc.gz"
+    })
 
 
 def test_cdxj_resolve_revisit_2():
     # Resolve Revisit -- cdxj minimal -- output also json
-    results = cdx_ops_test_data(url = 'http://example.com/?example=1', sources={'nd-file': get_test_dir() + 'cdxj/example-no-digest.cdxj'}, resolveRevisits=True)
-    assert(len(results) == 2)
-    assert(dict(results[0]) == {"urlkey": "com,example)/?example=1", "timestamp": "20140103030321", "url": "http://example.com?example=1", "length": "1043", "filename": "example.warc.gz", "offset": "333", "orig.length": "-", "orig.offset": "-", "orig.filename": "-"})
+    results = cdx_ops_test_data(
+        url='http://example.com/?example=1',
+        sources={'nd-file': get_test_dir() + 'cdxj/example-no-digest.cdxj'},
+        resolveRevisits=True)
+    assert (len(results) == 2)
+    assert (dict(results[0]) == {
+        "urlkey": "com,example)/?example=1",
+        "timestamp": "20140103030321",
+        "url": "http://example.com?example=1",
+        "length": "1043",
+        "filename": "example.warc.gz",
+        "offset": "333",
+        "orig.length": "-",
+        "orig.offset": "-",
+        "orig.filename": "-"
+    })
 
-    assert(dict(results[1]) == {"urlkey": "com,example)/?example=1", "timestamp": "20140103030341", "url": "http://example.com?example=1", "length": "553", "filename": "example.warc.gz", "mime": "warc/revisit", "offset": "1864", "orig.length": "-", "orig.offset": "-", "orig.filename": "-"})
-
+    assert (dict(results[1]) == {
+        "urlkey": "com,example)/?example=1",
+        "timestamp": "20140103030341",
+        "url": "http://example.com?example=1",
+        "length": "553",
+        "filename": "example.warc.gz",
+        "mime": "warc/revisit",
+        "offset": "1864",
+        "orig.length": "-",
+        "orig.offset": "-",
+        "orig.filename": "-"
+    })
 
 
 if __name__ == "__main__":

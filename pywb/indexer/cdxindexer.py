@@ -6,9 +6,9 @@ try:
     from ujson import dumps as ujson_dumps
 
     try:
-        assert (ujson_dumps('http://example.com/',
-                            escape_forward_slashes=False) ==
-                '"http://example.com/"')
+        assert (ujson_dumps(
+            'http://example.com/',
+            escape_forward_slashes=False) == '"http://example.com/"')
     except Exception as e:  # pragma: no cover
         sys.stderr.write('ujson w/o forward-slash escaping not available,\
 defaulting to regular json\n')
@@ -24,7 +24,6 @@ try:  # pragma: no cover
     from collections import OrderedDict
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
-
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -61,7 +60,8 @@ class BaseCDXWriter(object):
     def _is_skipped(self, entry):
         if entry.record.rec_type == 'warcinfo':
             return True
-        return entry.record.rec_type == 'metadata' and entry['mime'] in self.METADATA_NO_INDEX_TYPES
+        return entry.record.rec_type == 'metadata' and entry[
+            'mime'] in self.METADATA_NO_INDEX_TYPES
 
     def __exit__(self, *args):
         return False
@@ -69,6 +69,7 @@ class BaseCDXWriter(object):
 
 #=================================================================
 class CDXJ(object):
+
     def _write_header(self):
         pass
 
@@ -99,6 +100,7 @@ class CDXJ(object):
 
 #=================================================================
 class CDX09(object):
+
     def _write_header(self):
         self.out.write(' CDX N b a m s k r V g\n')
 
@@ -126,6 +128,7 @@ class CDX09(object):
 
 #=================================================================
 class CDX11(object):
+
     def _write_header(self):
         self.out.write(' CDX N b a m s k r M S V g\n')
 
@@ -155,6 +158,7 @@ class CDX11(object):
 
 #=================================================================
 class SortedCDXWriter(BaseCDXWriter):
+
     def __enter__(self):
         self.sortlist = []
         res = super(SortedCDXWriter, self).__enter__()
@@ -265,9 +269,7 @@ def write_multi_cdx_index(output, inputs, **options):
 
     # write one cdx per dir
     if output != '-' and os.path.isdir(output):
-        for fullpath, filename in iter_file_or_dir(inputs,
-                                                   recurse,
-                                                   rel_root):
+        for fullpath, filename in iter_file_or_dir(inputs, recurse, rel_root):
             outpath = cdx_filename(filename)
             outpath = os.path.join(output, outpath)
 
@@ -292,8 +294,7 @@ def write_multi_cdx_index(output, inputs, **options):
         record_iter = DefaultRecordParser(**options)
 
         with writer_cls(outfile) as writer:
-            for fullpath, filename in iter_file_or_dir(inputs,
-                                                       recurse,
+            for fullpath, filename in iter_file_or_dir(inputs, recurse,
                                                        rel_root):
                 with open(fullpath, 'rb') as infile:
                     entry_iter = record_iter(infile)
@@ -411,54 +412,53 @@ instead of current working directory
                             epilog=epilog,
                             formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument('-s', '--sort',
-                        action='store_true',
-                        help=sort_help)
+    parser.add_argument('-s', '--sort', action='store_true', help=sort_help)
 
-    parser.add_argument('-a', '--allrecords',
+    parser.add_argument('-a',
+                        '--allrecords',
                         action='store_true',
                         help=allrecords_help)
 
-    parser.add_argument('-p', '--postappend',
+    parser.add_argument('-p',
+                        '--postappend',
                         action='store_true',
                         help=post_append_help)
 
-    parser.add_argument('-r', '--recurse',
+    parser.add_argument('-r',
+                        '--recurse',
                         action='store_true',
                         help=recurse_dirs_help)
 
-    parser.add_argument('-d', '--dir-root',
-                        help=dir_root_help)
+    parser.add_argument('-d', '--dir-root', help=dir_root_help)
 
-    parser.add_argument('-u', '--unsurt',
+    parser.add_argument('-u',
+                        '--unsurt',
                         action='store_true',
                         help=unsurt_help)
 
-    parser.add_argument('-v', '--verify',
+    parser.add_argument('-v',
+                        '--verify',
                         action='store_true',
                         help=verify_help)
 
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('-9', '--cdx09',
-                        action='store_true',
-                        help=cdx09_help)
+    group.add_argument('-9', '--cdx09', action='store_true', help=cdx09_help)
 
-    group.add_argument('-j', '--cdxj',
-                        action='store_true',
-                        help=json_help)
+    group.add_argument('-j', '--cdxj', action='store_true', help=json_help)
 
-    parser.add_argument('-mj', '--minimal-cdxj',
+    parser.add_argument('-mj',
+                        '--minimal-cdxj',
                         action='store_true',
                         help=minimal_json_help)
 
-    parser.add_argument('-o', '--output',
-                        default='-', help=output_help)
+    parser.add_argument('-o', '--output', default='-', help=output_help)
 
     parser.add_argument('inputs', nargs='+', help=input_help)
 
     cmd = parser.parse_args(args=args)
 
-    write_multi_cdx_index(cmd.output, cmd.inputs,
+    write_multi_cdx_index(cmd.output,
+                          cmd.inputs,
                           sort=cmd.sort,
                           surt_ordered=not cmd.unsurt,
                           include_all=cmd.allrecords,

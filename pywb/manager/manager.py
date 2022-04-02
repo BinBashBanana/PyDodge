@@ -19,13 +19,13 @@ from pywb import DEFAULT_CONFIG
 
 from six.moves import input
 
-
 #=============================================================================
 # to allow testing by mocking get_input
 
 
 def get_input(msg):  # pragma: no cover
     return input(msg)
+
 
 #=============================================================================
 def get_version():
@@ -84,12 +84,10 @@ directory structure expected by pywb
                 print('- ' + d)
 
     def _get_root_dir(self, name):
-        return os.path.join(os.getcwd(),
-                            self.default_config[name])
+        return os.path.join(os.getcwd(), self.default_config[name])
 
     def _get_dir(self, name):
-        return os.path.join(self.curr_coll_dir,
-                            self.default_config[name])
+        return os.path.join(self.curr_coll_dir, self.default_config[name])
 
     def _create_dir(self, dirname):
         if not os.path.isdir(dirname):
@@ -117,8 +115,8 @@ directory structure expected by pywb
 
     def add_warcs(self, warcs):
         if not os.path.isdir(self.archive_dir):
-            raise IOError('Directory {0} does not exist'.
-                          format(self.archive_dir))
+            raise IOError('Directory {0} does not exist'.format(
+                self.archive_dir))
 
         full_paths = []
         for filename in warcs:
@@ -214,7 +212,8 @@ directory structure expected by pywb
             metadata[v[0]] = v[1]
 
         with open(metadata_yaml, 'w+b') as fh:
-            fh.write(yaml.dump(metadata, default_flow_style=False).encode('utf-8'))
+            fh.write(
+                yaml.dump(metadata, default_flow_style=False).encode('utf-8'))
 
     def _load_templates_map(self):
         defaults = load_yaml_config(DEFAULT_CONFIG)
@@ -335,11 +334,15 @@ Create manage file based web archive collections
     logging.basicConfig(format='%(asctime)s: [%(levelname)s]: %(message)s',
                         level=logging.DEBUG)
 
-    parser = ArgumentParser(description=description,
-                            # epilog=epilog,
-                            formatter_class=RawTextHelpFormatter)
+    parser = ArgumentParser(
+        description=description,
+        # epilog=epilog,
+        formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument("-V", "--version", action="version", version=get_version())
+    parser.add_argument("-V",
+                        "--version",
+                        action="version",
+                        version=get_version())
 
     subparsers = parser.add_subparsers(dest='type')
     subparsers.required = True
@@ -438,6 +441,7 @@ Create manage file based web archive collections
 
     # ACL
     from pywb.manager.aclmanager import ACLManager
+
     def do_acl(r):
         acl = ACLManager(r)
         acl.process(r)
@@ -457,7 +461,9 @@ Create manage file based web archive collections
 
     def do_loc(r):
         if not loc_avail:
-            print("You must install i18n extensions with 'pip install pywb[i18n]' to use localization features")
+            print(
+                "You must install i18n extensions with 'pip install pywb[i18n]' to use localization features"
+            )
             return
 
         loc = LocManager()

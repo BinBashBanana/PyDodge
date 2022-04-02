@@ -11,6 +11,7 @@ from pywb.utils.wbexception import NotFoundException
 # Static Content Handler
 #=================================================================
 class StaticHandler(object):
+
     def __init__(self, static_path):
         mimetypes.init()
 
@@ -62,7 +63,4 @@ class StaticHandler(object):
                                          headers=headers)
 
         except IOError:
-            raise NotFoundException('Static File Not Found: ' +
-                                    url_str)
-
-
+            raise NotFoundException('Static File Not Found: ' + url_str)

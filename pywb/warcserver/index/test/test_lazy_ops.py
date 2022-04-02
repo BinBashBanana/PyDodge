@@ -6,7 +6,6 @@ from pytest import raises
 
 import six
 
-
 URL = 'http://example.com/'
 
 
@@ -18,6 +17,7 @@ def raise_access_exception(cdx_iter, query):
     for cdx in cdx_iter:
         yield
 
+
 #================================================================
 def lazy_cdx_load(**params):
     """
@@ -28,9 +28,7 @@ def lazy_cdx_load(**params):
     """
     params['custom_ops'] = [raise_access_exception]
 
-    cdx_iter = cdx_load(['bogus ignored'],
-                        CDXQuery(params),
-                        process=True)
+    cdx_iter = cdx_load(['bogus ignored'], CDXQuery(params), process=True)
 
     # exception happens on first access attempt
     with raises(AccessException):
@@ -40,17 +38,22 @@ def lazy_cdx_load(**params):
 def test_no_process():
     lazy_cdx_load(url=URL)
 
+
 def test_reverse():
     lazy_cdx_load(url=URL, reverse=True)
+
 
 def test_closest():
     lazy_cdx_load(url=URL, closest='2013')
 
+
 def test_limit():
     lazy_cdx_load(url=URL, limit=10)
 
+
 def test_limit_1_reverse():
     lazy_cdx_load(url=URL, limit=1, reverse=True)
+
 
 def test_multi_ops():
     lazy_cdx_load(url=URL,
@@ -62,6 +65,3 @@ def test_multi_ops():
                   limit=5,
                   fields='timestamp,filename',
                   output='text')
-
-
-

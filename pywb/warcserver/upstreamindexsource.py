@@ -10,10 +10,12 @@ from pywb.utils.format import ParamFormatter, res_template
 
 #=============================================================================
 class UpstreamAggIndexSource(RemoteIndexSource):
+
     def __init__(self, base_url):
         api_url = base_url + '/index?url={url}'
         proxy_url = base_url + '/resource?url={url}&closest={timestamp}'
-        super(UpstreamAggIndexSource, self).__init__(api_url, proxy_url, 'filename')
+        super(UpstreamAggIndexSource, self).__init__(api_url, proxy_url,
+                                                     'filename')
 
     def _set_load_url(self, cdx, params):
         super(UpstreamAggIndexSource, self)._set_load_url(cdx, params)
@@ -23,6 +25,7 @@ class UpstreamAggIndexSource(RemoteIndexSource):
 
 #=============================================================================
 class UpstreamMementoIndexSource(BaseIndexSource):
+
     def __init__(self, proxy_url='{url}'):
         self.proxy_url = proxy_url
         self.loader = LiveWebLoader()
@@ -51,6 +54,5 @@ class UpstreamMementoIndexSource(BaseIndexSource):
 
     @staticmethod
     def upstream_resource(base_url):
-        return UpstreamMementoIndexSource(base_url + '/resource?url={url}&closest={closest}')
-
-
+        return UpstreamMementoIndexSource(
+            base_url + '/resource?url={url}&closest={closest}')

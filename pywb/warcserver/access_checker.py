@@ -123,21 +123,19 @@ class AccessChecker(object):
 
         value = embargo.get('older')
         if value:
-            delta = relativedelta(
-                years=value.get('years', 0),
-                months=value.get('months', 0),
-                weeks=value.get('weeks', 0),
-                days=value.get('days', 0))
+            delta = relativedelta(years=value.get('years', 0),
+                                  months=value.get('months', 0),
+                                  weeks=value.get('weeks', 0),
+                                  days=value.get('days', 0))
 
             embargo['older'] = delta
 
         value = embargo.get('newer')
         if value:
-            delta = relativedelta(
-                years=value.get('years', 0),
-                months=value.get('months', 0),
-                weeks=value.get('weeks', 0),
-                days=value.get('days', 0))
+            delta = relativedelta(years=value.get('years', 0),
+                                  months=value.get('months', 0),
+                                  weeks=value.get('weeks', 0),
+                                  days=value.get('days', 0))
 
             embargo['newer'] = delta
 
@@ -209,7 +207,12 @@ class AccessChecker(object):
         else:
             raise Exception('Invalid Access Source: ' + filename)
 
-    def find_access_rule(self, url, ts=None, urlkey=None, collection=None, acl_user=None):
+    def find_access_rule(self,
+                         url,
+                         ts=None,
+                         urlkey=None,
+                         collection=None,
+                         acl_user=None):
         """Attempts to find the access control rule for the
         supplied URL otherwise returns the default rule
 
@@ -222,11 +225,12 @@ class AccessChecker(object):
         if one exists otherwise the default rule
         :rtype: CDXObject
         """
-        params = {'url': url,
-                  'urlkey': urlkey,
-                  'nosource': 'true',
-                  'exact_match_suffix': self.EXACT_SUFFIX_SEARCH_B
-                 }
+        params = {
+            'url': url,
+            'urlkey': urlkey,
+            'nosource': 'true',
+            'exact_match_suffix': self.EXACT_SUFFIX_SEARCH_B
+        }
         if collection:
             params['param.coll'] = collection
 

@@ -33,7 +33,6 @@ class ArchiveIndexEntryMixin(object):
         self.buffer = None
         self.record = None
 
-
     def extract_mime(self, mime, def_mime='unk'):
         """ Utility function to extract mimetype only
         from a full content type, removing charset settings
@@ -87,6 +86,7 @@ class ArchiveIndexEntryMixin(object):
 
 #=================================================================
 class DefaultRecordParser(object):
+
     def __init__(self, **options):
         self.options = options
         self.entry_cache = {}
@@ -128,7 +128,8 @@ class DefaultRecordParser(object):
 
     def end_payload(self, entry):
         if self.digester:
-            entry['digest'] = base64.b32encode(self.digester.digest()).decode('ascii')
+            entry['digest'] = base64.b32encode(
+                self.digester.digest()).decode('ascii')
 
         self.entry = None
 
@@ -148,20 +149,20 @@ class DefaultRecordParser(object):
         for record in raw_iter:
             entry = None
 
-            if not include_all and not minimal and (record.http_headers.get_statuscode() == '-'):
+            if not include_all and not minimal and (
+                    record.http_headers.get_statuscode() == '-'):
                 continue
 
             if record.rec_type == 'arc_header':
                 continue
 
             if record.format == 'warc':
-                if (record.rec_type in ('request', 'warcinfo') and
-                     not include_all and
-                     not append_post):
+                if (record.rec_type in ('request', 'warcinfo')
+                        and not include_all and not append_post):
                     continue
 
-                elif (not include_all and
-                      record.content_type == 'application/warc-fields'):
+                elif (not include_all
+                      and record.content_type == 'application/warc-fields'):
                     continue
 
                 entry = self.parse_warc_record(record)
@@ -176,8 +177,8 @@ class DefaultRecordParser(object):
 
             compute_digest = False
 
-            if (entry.get('digest', '-') == '-' and
-                record.rec_type not in ('revisit', 'request', 'warcinfo')):
+            if (entry.get('digest', '-') == '-' and record.rec_type
+                    not in ('revisit', 'request', 'warcinfo')):
 
                 compute_digest = True
 
@@ -185,10 +186,9 @@ class DefaultRecordParser(object):
                 method = record.http_headers.protocol
                 len_ = record.http_headers.get_header('Content-Length')
 
-                post_query = MethodQueryCanonicalizer(method,
-                                                entry.get('_content_type'),
-                                                len_,
-                                                record.raw_stream)
+                post_query = MethodQueryCanonicalizer(
+                    method, entry.get('_content_type'), len_,
+                    record.raw_stream)
 
                 entry['_post_query'] = post_query
 
@@ -226,8 +226,8 @@ class DefaultRecordParser(object):
                   prev_entry.record.rec_headers.get_header('WARC-Record-ID')):
                 pass
 
-            elif (entry.merge_request_data(prev_entry, self.options) or
-                  prev_entry.merge_request_data(entry, self.options)):
+            elif (entry.merge_request_data(prev_entry, self.options)
+                  or prev_entry.merge_request_data(entry, self.options)):
                 yield prev_entry
                 yield entry
                 prev_entry = None
@@ -238,7 +238,6 @@ class DefaultRecordParser(object):
 
         if prev_entry:
             yield prev_entry
-
 
     #=================================================================
     def parse_warc_record(self, record):
@@ -256,8 +255,8 @@ class DefaultRecordParser(object):
         entry['url'] = record.rec_headers.get_header('WARC-Target-Uri')
 
         # timestamp
-        entry['timestamp'] = iso_date_to_timestamp(record.rec_headers.
-                                                   get_header('WARC-Date'))
+        entry['timestamp'] = iso_date_to_timestamp(
+            record.rec_headers.get_header('WARC-Date'))
 
         # mime
         if record.rec_type == 'revisit':
@@ -266,12 +265,11 @@ class DefaultRecordParser(object):
             entry['mime'] = '-'
         else:
             def_mime = '-' if record.rec_type == 'request' else 'unk'
-            entry.extract_mime(record.http_headers.
-                               get_header('Content-Type'),
+            entry.extract_mime(record.http_headers.get_header('Content-Type'),
                                def_mime)
             # detected mime from WARC-Identified-Payload-Type
             entry['mime-detected'] = record.rec_headers.get_header(
-                                        'WARC-Identified-Payload-Type')
+                'WARC-Identified-Payload-Type')
 
         # status -- only for response records (by convention):
         if record.rec_type == 'response' and not self.options.get('minimal'):
@@ -294,7 +292,6 @@ class DefaultRecordParser(object):
             entry['metadata'] = metadata
 
         return entry
-
 
     #=================================================================
     def parse_arc_record(self, record):
@@ -329,10 +326,11 @@ class DefaultRecordParser(object):
         return entry
 
     def __call__(self, fh):
-        aiter = ArchiveIterator(fh, self.options.get('minimal', False),
-                                    self.options.get('verify_http', False),
-                                    self.options.get('arc2warc', False),
-                                    ensure_http_headers=True)
+        aiter = ArchiveIterator(fh,
+                                self.options.get('minimal', False),
+                                self.options.get('verify_http', False),
+                                self.options.get('arc2warc', False),
+                                ensure_http_headers=True)
 
         entry_iter = self.create_record_iter(aiter)
 
@@ -340,8 +338,8 @@ class DefaultRecordParser(object):
             entry_iter = self.join_request_records(entry_iter)
 
         for entry in entry_iter:
-            if (entry.record.rec_type in ('request', 'warcinfo') and
-                 not self.options.get('include_all')):
+            if (entry.record.rec_type in ('request', 'warcinfo')
+                    and not self.options.get('include_all')):
                 continue
 
             yield entry
@@ -351,10 +349,10 @@ class DefaultRecordParser(object):
             for entry in self(fh):
                 yield entry
 
+
 class ArchiveIndexEntry(ArchiveIndexEntryMixin, dict):
     pass
 
+
 class OrderedArchiveIndexEntry(ArchiveIndexEntryMixin, OrderedDict):
     pass
-
-

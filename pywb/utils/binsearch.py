@@ -9,6 +9,7 @@ import six
 import sys
 
 if six.PY3:
+
     def cmp(a, b):
         return (a > b) - (a < b)
 
@@ -112,7 +113,8 @@ def search(reader, key, prev_size=0, compare_func=cmp, block_size=8192):
     """
     iter_ = binsearch(reader, key, compare_func, block_size)
     iter_ = linearsearch(iter_,
-                         key, prev_size=prev_size,
+                         key,
+                         prev_size=prev_size,
                          compare_func=compare_func)
     return iter_
 
@@ -126,9 +128,7 @@ def iter_range(reader, start, end, prev_size=0):
 
     iter_ = search(reader, start, prev_size=prev_size)
 
-    end_iter = itertools.takewhile(
-        lambda line: line < end,
-        iter_)
+    end_iter = itertools.takewhile(lambda line: line < end, iter_)
 
     return end_iter
 
@@ -140,9 +140,8 @@ def iter_prefix(reader, key):
     'key' in a sorted text file.
     """
 
-    return itertools.takewhile(
-        lambda line: line.startswith(key),
-        search(reader, key))
+    return itertools.takewhile(lambda line: line.startswith(key),
+                               search(reader, key))
 
 
 #=================================================================

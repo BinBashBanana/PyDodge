@@ -25,6 +25,7 @@ import glob
 
 #=============================================================================
 class BaseAggregator(object):
+
     def __call__(self, params):
         if params.get('closest') == 'now':
             params['closest'] = timestamp_now()
@@ -117,6 +118,7 @@ class BaseAggregator(object):
 
 #=============================================================================
 class BaseSourceListAggregator(BaseAggregator):
+
     def __init__(self, sources, **kwargs):
         self.sources = sources
         self.sources_key = kwargs.get('sources_key', 'sources')
@@ -158,8 +160,8 @@ class BaseSourceListAggregator(BaseAggregator):
 
     def yield_invert_sources(self, sel_sources, params):
         sources = self.get_all_sources(params)
-        sel_sources = tuple([src.split(':', 1)[0]
-                             for src in sel_sources.split(',')])
+        sel_sources = tuple(
+            [src.split(':', 1)[0] for src in sel_sources.split(',')])
 
         for name in six.iterkeys(sources):
             if name not in sel_sources:
@@ -168,14 +170,16 @@ class BaseSourceListAggregator(BaseAggregator):
 
 #=============================================================================
 class SeqAggMixin(object):
+
     def __init__(self, *args, **kwargs):
         super(SeqAggMixin, self).__init__(*args, **kwargs)
 
-
     def _load_all(self, params):
         sources = self._iter_sources(params)
-        return [self.load_child_source(name, source, params)
-                for name, source in sources]
+        return [
+            self.load_child_source(name, source, params)
+            for name, source in sources
+        ]
 
 
 #=============================================================================
@@ -185,6 +189,7 @@ class SimpleAggregator(SeqAggMixin, BaseSourceListAggregator):
 
 #=============================================================================
 class TimeoutMixin(object):
+
     def __init__(self, *args, **kwargs):
         super(TimeoutMixin, self).__init__(*args, **kwargs)
         self.t_count = kwargs.get('t_count', 3)
@@ -202,8 +207,8 @@ class TimeoutMixin(object):
                 timeout_deq.popleft()
 
         if len(timeout_deq) >= self.t_count:
-            print('Skipping {0}, {1} timeouts in {2} seconds'.
-                  format(name, self.t_count, self.t_dura))
+            print('Skipping {0}, {1} timeouts in {2} seconds'.format(
+                name, self.t_count, self.t_dura))
             return True
 
         return False
@@ -238,7 +243,8 @@ class GeventMixin(object):
         sources = list(self._iter_sources(params))
 
         def do_spawn(name, source):
-            return self.pool.spawn(self.load_child_source, name, source, params)
+            return self.pool.spawn(self.load_child_source, name, source,
+                                   params)
 
         jobs = [do_spawn(name, source) for name, source in sources]
 
@@ -256,16 +262,15 @@ class GeventMixin(object):
 
 
 #=============================================================================
-class GeventTimeoutAggregator(TimeoutMixin, GeventMixin, BaseSourceListAggregator):
+class GeventTimeoutAggregator(TimeoutMixin, GeventMixin,
+                              BaseSourceListAggregator):
     pass
 
 
 #=============================================================================
 class BaseDirectoryIndexSource(BaseAggregator):
-    INDEX_SOURCES = [
-                     (FileIndexSource.CDX_EXT, FileIndexSource),
-                     (ZipNumIndexSource.IDX_EXT, ZipNumIndexSource)
-                    ]
+    INDEX_SOURCES = [(FileIndexSource.CDX_EXT, FileIndexSource),
+                     (ZipNumIndexSource.IDX_EXT, ZipNumIndexSource)]
 
     def __init__(self, base_prefix, base_dir='', name='', config=None):
         self.base_prefix = base_prefix
@@ -296,7 +301,7 @@ class BaseDirectoryIndexSource(BaseAggregator):
 
                 filename = os.path.join(the_dir, name)
 
-                 #print('Adding ' + filename)
+                #print('Adding ' + filename)
                 rel_path = os.path.relpath(the_dir, self.base_prefix)
                 if rel_path == '.':
                     full_name = name
@@ -314,8 +319,9 @@ class BaseDirectoryIndexSource(BaseAggregator):
         return name.split(os.path.sep, 1)[0]
 
     def __repr__(self):
-        return '{0}(file://{1})'.format(self.__class__.__name__,
-                                        os.path.join(self.base_prefix, self.base_dir))
+        return '{0}(file://{1})'.format(
+            self.__class__.__name__,
+            os.path.join(self.base_prefix, self.base_dir))
 
     def __str__(self):
         return 'file_dir'
@@ -324,8 +330,8 @@ class BaseDirectoryIndexSource(BaseAggregator):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.base_prefix == other.base_prefix and
-                self.base_dir == other.base_dir)
+        return (self.base_prefix == other.base_prefix
+                and self.base_dir == other.base_dir)
 
     @classmethod
     def init_from_string(cls, value):
@@ -349,6 +355,7 @@ class DirectoryIndexSource(SeqAggMixin, BaseDirectoryIndexSource):
 
 #=============================================================================
 class CacheDirectoryMixin(object):
+
     def __init__(self, *args, **kwargs):
         super(CacheDirectoryMixin, self).__init__(*args, **kwargs)
         self.cached_file_list = {}
@@ -367,7 +374,8 @@ class CacheDirectoryMixin(object):
                 print('Dir {0} unchanged'.format(the_dir))
                 return files
 
-        files = super(CacheDirectoryMixin, self)._load_files_single_dir(the_dir)
+        files = super(CacheDirectoryMixin,
+                      self)._load_files_single_dir(the_dir)
         files = list(files)
         self.cached_file_list[the_dir] = (stat, files)
         return files
@@ -380,6 +388,7 @@ class CacheDirectoryIndexSource(CacheDirectoryMixin, DirectoryIndexSource):
 
 #=============================================================================
 class BaseRedisMultiKeyIndexSource(BaseAggregator, RedisIndexSource):
+
     def _iter_sources(self, params):
         redis_key_pattern = res_template(self.redis_key_template, params)
 
@@ -403,4 +412,3 @@ class BaseRedisMultiKeyIndexSource(BaseAggregator, RedisIndexSource):
 #=============================================================================
 class RedisMultiKeyIndexSource(SeqAggMixin, BaseRedisMultiKeyIndexSource):
     pass
-

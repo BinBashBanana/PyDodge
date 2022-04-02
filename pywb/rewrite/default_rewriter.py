@@ -28,24 +28,16 @@ class DefaultRewriter(BaseContentRewriter):
     DEFAULT_REWRITERS = {
         'header': DefaultHeaderRewriter,
         'cookie': HostScopeCookieRewriter,
-
         'html': HTMLRewriter,
         'html-banner-only': HTMLInsertOnlyRewriter,
-
         'css': CSSRewriter,
-
         'js': JSLocationOnlyRewriter,
         'js-proxy': JSNoneRewriter,
         'js-worker': JSWorkerRewriter,
-
         'json': JSONPRewriter,
-
         'xml': XMLRewriter,
-
         'dash': RewriteDASH,
-
         'hls': RewriteHLS,
-
         'amf': RewriteAMF,
     }
 
@@ -115,6 +107,7 @@ class DefaultRewriter(BaseContentRewriter):
 
 # ============================================================================
 class RewriterWithJSProxy(DefaultRewriter):
+
     def __init__(self, *args, **kwargs):
         super(RewriterWithJSProxy, self).__init__(*args, **kwargs)
 

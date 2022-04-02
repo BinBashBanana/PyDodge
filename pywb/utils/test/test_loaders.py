@@ -70,7 +70,6 @@ IOError: [Errno 2] No such file or directory: '_x_no_such_file_'
 
 """
 
-
 #=================================================================
 import re
 import os
@@ -101,9 +100,10 @@ test_cdx_dir = get_test_dir() + 'cdx/'
 def test_s3_read_1():
     pytest.importorskip('boto3')
 
-    res = BlockLoader().load('s3://commoncrawl/crawl-data/CC-MAIN-2015-11/segments/1424936462700.28/warc/CC-MAIN-20150226074102-00159-ip-10-28-5-156.ec2.internal.warc.gz',
-                             offset=53235662,
-                             length=2526)
+    res = BlockLoader().load(
+        's3://commoncrawl/crawl-data/CC-MAIN-2015-11/segments/1424936462700.28/warc/CC-MAIN-20150226074102-00159-ip-10-28-5-156.ec2.internal.warc.gz',
+        offset=53235662,
+        length=2526)
 
     buff = res.read()
     assert len(buff) == 2526
@@ -112,10 +112,12 @@ def test_s3_read_1():
     assert reader.readline() == b'WARC/1.0\r\n'
     assert reader.readline() == b'WARC-Type: response\r\n'
 
+
 def test_s3_read_2():
     pytest.importorskip('boto3')
 
-    res = BlockLoader().load('s3://commoncrawl/crawl-data/CC-MAIN-2015-11/index.html')
+    res = BlockLoader().load(
+        's3://commoncrawl/crawl-data/CC-MAIN-2015-11/index.html')
 
     buff = res.read()
     assert len(buff) == 2082
@@ -123,7 +125,9 @@ def test_s3_read_2():
     reader = DecompressingBufferedReader(BytesIO(buff))
     assert reader.readline() == b'<!DOCTYPE html>\n'
 
+
 def mock_load(expected):
+
     def mock(self, url, offset, length):
         assert canonicalize(url) == canonicalize(expected)
         assert offset == 0
@@ -132,28 +136,36 @@ def mock_load(expected):
 
     return mock
 
+
 def test_mock_webhdfs_load_1():
     expected = 'http://remote-host:1234/webhdfs/v1/some/file.warc.gz?op=OPEN&offset=10&length=50'
     with patch('pywb.utils.loaders.HttpLoader.load', mock_load(expected)):
-        res = BlockLoader().load('webhdfs://remote-host:1234/some/file.warc.gz', 10, 50)
+        res = BlockLoader().load(
+            'webhdfs://remote-host:1234/some/file.warc.gz', 10, 50)
+
 
 def test_mock_webhdfs_load_2():
     expected = 'http://remote-host/webhdfs/v1/some/file.warc.gz?op=OPEN&offset=10'
     with patch('pywb.utils.loaders.HttpLoader.load', mock_load(expected)):
-        res = BlockLoader().load('webhdfs://remote-host/some/file.warc.gz', 10, -1)
+        res = BlockLoader().load('webhdfs://remote-host/some/file.warc.gz', 10,
+                                 -1)
+
 
 def test_mock_webhdfs_load_3_username():
     os.environ['WEBHDFS_USER'] = 'someuser'
     expected = 'http://remote-host/webhdfs/v1/some/file.warc.gz?op=OPEN&offset=10&user.name=someuser'
     with patch('pywb.utils.loaders.HttpLoader.load', mock_load(expected)):
-        res = BlockLoader().load('webhdfs://remote-host/some/file.warc.gz', 10, -1)
+        res = BlockLoader().load('webhdfs://remote-host/some/file.warc.gz', 10,
+                                 -1)
+
 
 def test_mock_webhdfs_load_4_token():
     os.environ['WEBHDFS_USER'] = ''
     os.environ['WEBHDFS_TOKEN'] = 'ATOKEN'
     expected = 'http://remote-host/webhdfs/v1/some/file.warc.gz?op=OPEN&offset=10&delegation=ATOKEN'
     with patch('pywb.utils.loaders.HttpLoader.load', mock_load(expected)):
-        res = BlockLoader().load('webhdfs://remote-host/some/file.warc.gz', 10, -1)
+        res = BlockLoader().load('webhdfs://remote-host/some/file.warc.gz', 10,
+                                 -1)
 
 
 # Error
@@ -167,8 +179,9 @@ def test_err_unknown_loader():
     # unknown loader error
     with pytest.raises(IOError):
         BlockLoader().load('foo://example.com', 10).read()
-#IOError: No Loader for type: foo
 
+
+#IOError: No Loader for type: foo
 
 
 def test_yaml_resolve_env():
@@ -187,10 +200,12 @@ collection:
 
     assert config_data['collection']['coll']['index'] == './test/index'
     assert config_data['collection']['coll']['archive'] == './test/archive/bar'
-    assert config_data['collection']['coll']['other'] == '${PYWB_NOT}/archive/bar'
+    assert config_data['collection']['coll'][
+        'other'] == '${PYWB_NOT}/archive/bar'
 
     del os.environ['PYWB_PATH']
     del os.environ['PYWB_FOO']
+
 
 def print_str(string):
     return string.decode('utf-8') if six.PY3 else string
@@ -199,5 +214,3 @@ def print_str(string):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
-

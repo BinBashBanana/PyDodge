@@ -192,7 +192,8 @@ class ACLManager(CollectionsManager):
         replace = False
 
         for rule in self.rules:
-            if acl['urlkey'] == rule['urlkey'] and acl['timestamp'] == rule['timestamp'] and acl.get('user') == rule.get('user'):
+            if acl['urlkey'] == rule['urlkey'] and acl['timestamp'] == rule[
+                    'timestamp'] and acl.get('user') == rule.get('user'):
                 replace = True
                 break
 
@@ -314,7 +315,8 @@ class ACLManager(CollectionsManager):
                     self._add_rule(url, r.access)
                     count += 1
 
-            print('Added or replaced {0} rules from '.format(count) + r.filename)
+            print('Added or replaced {0} rules from '.format(count) +
+                  r.filename)
 
         except Exception as e:
             print('Error Importing: ' + str(e))
@@ -350,14 +352,36 @@ class ACLManager(CollectionsManager):
                 op.add_argument('-u', '--user')
 
             if kwargs.get('exact_opt'):
-                op.add_argument('-e', '--exact-match', action='store_true', default=False)
+                op.add_argument('-e',
+                                '--exact-match',
+                                action='store_true',
+                                default=False)
 
             op.set_defaults(acl_func=kwargs['func'])
 
-        command('add', 'coll_name', 'url', 'access', func=cls.add_rule, exact_opt=True, user_opt=True)
-        command('remove', 'coll_name', 'url', func=cls.remove_rule, exact_opt=True, user_opt=True)
+        command('add',
+                'coll_name',
+                'url',
+                'access',
+                func=cls.add_rule,
+                exact_opt=True,
+                user_opt=True)
+        command('remove',
+                'coll_name',
+                'url',
+                func=cls.remove_rule,
+                exact_opt=True,
+                user_opt=True)
         command('list', 'coll_name', func=cls.list_rules)
         command('validate', 'coll_name', func=cls.validate_save)
-        command('match', 'coll_name', 'url', 'default_access', func=cls.find_match, user_opt=True)
-        command('importtxt', 'coll_name', 'filename', 'access', func=cls.add_excludes)
-
+        command('match',
+                'coll_name',
+                'url',
+                'default_access',
+                func=cls.find_match,
+                user_opt=True)
+        command('importtxt',
+                'coll_name',
+                'filename',
+                'access',
+                func=cls.add_excludes)

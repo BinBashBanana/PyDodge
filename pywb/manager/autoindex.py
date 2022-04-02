@@ -13,7 +13,9 @@ class AutoIndexer(object):
     AUTO_INDEX_FILE = 'autoindex.cdxj'
 
     def __init__(self, colls_dir=None, interval=30, keep_running=True):
-        self.manager = CollectionsManager('', colls_dir=colls_dir, must_exist=False)
+        self.manager = CollectionsManager('',
+                                          colls_dir=colls_dir,
+                                          must_exist=False)
 
         self.root_path = self.manager.colls_dir
 
@@ -61,7 +63,8 @@ class AutoIndexer(object):
             if not os.path.isdir(archive_dir):
                 continue
 
-            index_file = os.path.join(self.manager.indexes_dir, self.AUTO_INDEX_FILE)
+            index_file = os.path.join(self.manager.indexes_dir,
+                                      self.AUTO_INDEX_FILE)
 
             if not os.path.isfile(index_file):
                 try:
@@ -109,4 +112,3 @@ class AutoIndexer(object):
     def stop(self):
         self.interval = 0
         self.keep_running = False
-

@@ -59,4 +59,3 @@ class RewriteHLS(BufferedRewriter):
         buff_io.write('\n'.join(lines).encode('utf-8'))
         buff_io.seek(0)
         return buff_io
-

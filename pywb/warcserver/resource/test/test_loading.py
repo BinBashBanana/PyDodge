@@ -1,4 +1,3 @@
-
 """
 Test loading different types of records from a variety of formats
 
@@ -303,10 +302,8 @@ from pywb.warcserver.index.cdxobject import CDXObject
 from pywb import get_test_dir
 from mock import patch
 
-
 #==============================================================================
 test_warc_dir = get_test_dir() + 'warcs/'
-
 
 URL_AGNOSTIC_ORIG_CDX = 'org,iana,example)/ 20130702195402 http://example.iana.org/ \
 text/html 200 B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - \
@@ -323,7 +320,6 @@ warc/revisit - - - - \
 BAD_ORIG_CDX = b'org,iana,example)/ 20130702195401 http://example.iana.org/ \
 text/html 200 B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A - - \
 1001 353 someunknown.warc.gz'
-
 
 WRAP_WIDTH = 160
 
@@ -344,27 +340,32 @@ def load_test_archive(test_file, offset, length):
 
     archive = testloader.load(path, offset, length)
 
-    pprint.pprint(((archive.format, archive.rec_type),
-                   archive.rec_headers,
-                   archive.http_headers), indent=1, width=WRAP_WIDTH)
+    pprint.pprint(((archive.format, archive.rec_type), archive.rec_headers,
+                   archive.http_headers),
+                  indent=1,
+                  width=WRAP_WIDTH)
 
 
 #==============================================================================
 def load_orig_bad_cdx(_):
-    return [CDXObject(BAD_ORIG_CDX),
-            CDXObject(BAD_ORIG_CDX)]
+    return [CDXObject(BAD_ORIG_CDX), CDXObject(BAD_ORIG_CDX)]
 
 
 #==============================================================================
 def load_orig_cdx(_):
-    return [CDXObject(BAD_ORIG_CDX),
-            CDXObject(URL_AGNOSTIC_ORIG_CDX.encode('utf-8'))]
+    return [
+        CDXObject(BAD_ORIG_CDX),
+        CDXObject(URL_AGNOSTIC_ORIG_CDX.encode('utf-8'))
+    ]
 
 
 #==============================================================================
-def load_from_cdx_test(cdx, revisit_func=load_orig_cdx, reraise=False,
+def load_from_cdx_test(cdx,
+                       revisit_func=load_orig_cdx,
+                       reraise=False,
                        failed_files=None):
-    resolve_loader = ResolvingLoader(DefaultResolverMixin.make_resolvers(test_warc_dir))
+    resolve_loader = ResolvingLoader(
+        DefaultResolverMixin.make_resolvers(test_warc_dir))
     cdx = CDXObject(cdx.encode('utf-8'))
 
     try:
@@ -389,9 +390,9 @@ def parse_stream_error(**params):
 
 #==============================================================================
 def print_strs(strings):
-    return list(map(lambda string: string.encode('utf-8') if six.PY2 else string, strings))
-
-
+    return list(
+        map(lambda string: string.encode('utf-8')
+            if six.PY2 else string, strings))
 
 
 if __name__ == "__main__":

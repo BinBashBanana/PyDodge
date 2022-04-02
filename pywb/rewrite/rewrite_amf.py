@@ -7,6 +7,7 @@ from pywb.rewrite.content_rewriter import BufferedRewriter
 # ============================================================================
 # Experimental: not fully tested
 class RewriteAMF(BufferedRewriter):  #pragma: no cover
+
     def rewrite_stream(self, stream, rwinfo):
         try:
             from pyamf import remoting
@@ -46,5 +47,3 @@ class RewriteAMF(BufferedRewriter):  #pragma: no cover
 
             stream.seek(0)
             return stream
-
-

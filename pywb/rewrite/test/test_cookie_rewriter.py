@@ -67,21 +67,22 @@ True
 
 """
 
-
 from pywb.rewrite.cookie_rewriter import MinimalScopeCookieRewriter
 from pywb.rewrite.cookie_rewriter import get_cookie_rewriter
 from pywb.rewrite.url_rewriter import UrlRewriter
 import pytest
 import sys
 
-urlrewriter = UrlRewriter('20131226101010/http://example.com/some/path/index.html',
-                          'http://localhost:8080/pywb/',
-                          rel_prefix='/pywb/')
+urlrewriter = UrlRewriter(
+    '20131226101010/http://example.com/some/path/index.html',
+    'http://localhost:8080/pywb/',
+    rel_prefix='/pywb/')
 
 urlrewriter2 = UrlRewriter('em_/http://example.com/', '/preview/')
 urlrewriter2.rewrite_opts['is_live'] = True
 
-urlrewriter3 = UrlRewriter('em_/http://example.com/', 'https://localhost:8080/preview/')
+urlrewriter3 = UrlRewriter('em_/http://example.com/',
+                           'https://localhost:8080/preview/')
 
 
 def rewrite_cookie(cookie_str, rewriter=urlrewriter, scope='default'):
@@ -90,44 +91,62 @@ def rewrite_cookie(cookie_str, rewriter=urlrewriter, scope='default'):
 
 
 # ============================================================================
-@pytest.mark.skipif(sys.version_info < (2,7), reason='Unsupported')
+@pytest.mark.skipif(sys.version_info < (2, 7), reason='Unsupported')
 class TestCookies(object):
+
     def test_remove_expires(self):
-        res = rewrite_cookie('abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 GMT', urlrewriter2, 'coll')
+        res = rewrite_cookie(
+            'abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 GMT',
+            urlrewriter2, 'coll')
         assert len(res) == 1
-        assert res[0][1].lower() == 'abc=def; path=/preview/em_/http://example.com/file.html'
+        assert res[0][1].lower(
+        ) == 'abc=def; path=/preview/em_/http://example.com/file.html'
 
     def test_remove_expires_2(self):
-        res = rewrite_cookie('abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 UTC', urlrewriter2, 'coll')
+        res = rewrite_cookie(
+            'abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 UTC',
+            urlrewriter2, 'coll')
         assert len(res) == 1
-        assert res[0][1].lower() == 'abc=def; path=/preview/em_/http://example.com/file.html'
+        assert res[0][1].lower(
+        ) == 'abc=def; path=/preview/em_/http://example.com/file.html'
 
     def test_remove_expires_3(self):
-        res = rewrite_cookie('abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 GMT; httponly; Max-Age=100', urlrewriter2, 'coll')
+        res = rewrite_cookie(
+            'abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 GMT; httponly; Max-Age=100',
+            urlrewriter2, 'coll')
         assert len(res) == 1
-        assert res[0][1].lower() == 'abc=def; httponly; max-age=100; path=/preview/em_/http://example.com/file.html'
+        assert res[0][1].lower(
+        ) == 'abc=def; httponly; max-age=100; path=/preview/em_/http://example.com/file.html'
 
     def test_remove_expires_4(self):
-        res = rewrite_cookie('abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 GMT, foo=bar', urlrewriter2, 'coll')
+        res = rewrite_cookie(
+            'abc=def; Path=/file.html; Expires=Wed, 13 Jan 2021 22:23:01 GMT, foo=bar',
+            urlrewriter2, 'coll')
         assert len(res) == 2
         res = sorted(res)
-        assert res[0][1].lower() == 'abc=def; path=/preview/em_/http://example.com/file.html,'
+        assert res[0][1].lower(
+        ) == 'abc=def; path=/preview/em_/http://example.com/file.html,'
         assert res[1][1].lower() == 'foo=bar'
 
     def test_http_secure_flag(self):
-        res = rewrite_cookie('some=value; Domain=.example.com; Secure; Path=/diff/path/; HttpOnly; Max-Age=1500', urlrewriter, 'host')
+        res = rewrite_cookie(
+            'some=value; Domain=.example.com; Secure; Path=/diff/path/; HttpOnly; Max-Age=1500',
+            urlrewriter, 'host')
         assert len(res) == 1
-        assert res[0][1].lower() == 'some=value; httponly; path=/pywb/20131226101010/http://example.com/'
+        assert res[0][1].lower(
+        ) == 'some=value; httponly; path=/pywb/20131226101010/http://example.com/'
 
     def test_secure_flag_remove(self):
         # Secure Remove
-        res = rewrite_cookie('abc=def; Path=/file.html; HttpOnly; Secure', urlrewriter2, 'coll')
+        res = rewrite_cookie('abc=def; Path=/file.html; HttpOnly; Secure',
+                             urlrewriter2, 'coll')
         assert len(res) == 1
-        assert res[0][1].lower() == 'abc=def; httponly; path=/preview/em_/http://example.com/file.html'
+        assert res[0][1].lower(
+        ) == 'abc=def; httponly; path=/preview/em_/http://example.com/file.html'
 
     def test_secure_flag_keep(self):
         # Secure Keep
-        res = rewrite_cookie('abc=def; Path=/file.html; HttpOnly; Secure', urlrewriter3, 'coll')
-        assert res[0][1].lower() == 'abc=def; httponly; path=/preview/em_/http://example.com/file.html; secure'
-
-
+        res = rewrite_cookie('abc=def; Path=/file.html; HttpOnly; Secure',
+                             urlrewriter3, 'coll')
+        assert res[0][1].lower(
+        ) == 'abc=def; httponly; path=/preview/em_/http://example.com/file.html; secure'

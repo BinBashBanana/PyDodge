@@ -6,6 +6,7 @@ from pywb.utils.format import to_bool
 
 #=================================================================
 class CDXQuery(object):
+
     def __init__(self, params):
         self.params = params
         alt_url = self.params.get('alt_url')
@@ -106,8 +107,8 @@ class CDXQuery(object):
     @property
     def reverse(self):
         # sort=reverse overrides reverse=0
-        return (self._get_bool('reverse') or
-                self.params.get('sort') == 'reverse')
+        return (self._get_bool('reverse')
+                or self.params.get('sort') == 'reverse')
 
     @property
     def custom_ops(self):

@@ -19,6 +19,7 @@ from pywb.warcserver.index.query import CDXQuery
 
 # ============================================================================
 class ZipBlocks(object):
+
     def __init__(self, part, offset, length, count):
         self.part = part
         self.offset = offset
@@ -28,6 +29,7 @@ class ZipBlocks(object):
 
 # ============================================================================
 class AlwaysJsonResponse(dict):
+
     def to_json(self, *args):
         return json.dumps(self)
 
@@ -41,11 +43,13 @@ class AlwaysJsonResponse(dict):
 # ============================================================================
 #TODO: see if these could be combined with warc path resolvers
 
+
 class LocMapResolver(object):
     """ Lookup shards based on a file mapping
     shard name to one or more paths. The entries are
     tab delimited.
     """
+
     def __init__(self, loc_summary, loc_filename):
         # initial loc map
         self.loc_map = {}
@@ -90,6 +94,7 @@ class LocPrefixResolver(object):
     """ Use a prefix lookup, where the prefix can either be a fixed
     string or can be a regex replacement of the index summary path
     """
+
     def __init__(self, loc_summary, loc_config):
         import re
         loc_match = loc_config.get('match', '().*')
@@ -151,6 +156,7 @@ class ZipNumIndexSource(BaseIndexSource):
         idx_iter = self.compute_page_range(reader, query)
 
         if query.secondary_index_only:
+
             def gen_idx():
                 for idx in idx_iter:
                     yield IDXObject(idx)
@@ -170,10 +176,9 @@ class ZipNumIndexSource(BaseIndexSource):
         return gen_cdx()
 
     def _page_info(self, pages, pagesize, blocks):
-        info = AlwaysJsonResponse(
-                    pages=pages,
-                    pageSize=pagesize,
-                    blocks=blocks)
+        info = AlwaysJsonResponse(pages=pages,
+                                  pageSize=pagesize,
+                                  blocks=blocks)
 
         return info
 
@@ -200,10 +205,7 @@ class ZipNumIndexSource(BaseIndexSource):
             end_line = last_line
 
         # Get Start
-        first_iter = iter_range(reader,
-                                query.key,
-                                query.end_key,
-                                prev_size=1)
+        first_iter = iter_range(reader, query.key, query.end_key, prev_size=1)
 
         try:
             first_line = six.next(first_iter)
@@ -269,6 +271,7 @@ class ZipNumIndexSource(BaseIndexSource):
             no_except_close(reader)
 
     def search_by_line_num(self, reader, line):  # pragma: no cover
+
         def line_cmp(line1, line2):
             line1_no = int(line1.rsplit(b'\t', 1)[-1])
             line2_no = int(line2.rsplit(b'\t', 1)[-1])
@@ -284,21 +287,19 @@ class ZipNumIndexSource(BaseIndexSource):
         for idx in idx_iter:
             idx = IDXObject(idx)
 
-            if (blocks and blocks.part == idx['part'] and
-                blocks.offset + blocks.length == idx['offset'] and
-                blocks.count < self.max_blocks):
+            if (blocks and blocks.part == idx['part']
+                    and blocks.offset + blocks.length == idx['offset']
+                    and blocks.count < self.max_blocks):
 
-                    blocks.length += idx['length']
-                    blocks.count += 1
-                    ranges.append(idx['length'])
+                blocks.length += idx['length']
+                blocks.count += 1
+                ranges.append(idx['length'])
 
             else:
                 if blocks:
                     yield self.block_to_cdx_iter(blocks, ranges, query)
 
-                blocks = ZipBlocks(idx['part'],
-                                   idx['offset'],
-                                   idx['length'],
+                blocks = ZipBlocks(idx['part'], idx['offset'], idx['length'],
                                    1)
 
                 ranges = [blocks.length]
@@ -373,8 +374,7 @@ class ZipNumIndexSource(BaseIndexSource):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.summary == other.summary and
-                self.config == other.config)
+        return (self.summary == other.summary and self.config == other.config)
 
     @classmethod
     def init_from_string(cls, value):
@@ -395,4 +395,3 @@ class ZipNumIndexSource(BaseIndexSource):
             return
 
         return cls(config['path'], config)
-

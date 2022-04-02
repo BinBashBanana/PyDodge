@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-
 """
 This module provides loaders for local file system and over http
 local and remote access
@@ -104,8 +103,10 @@ def load_yaml_config(config_file):
 
 
 # =============================================================================
-def load_overlay_config(main_env_var, main_default_file='',
-                        overlay_env_var='', overlay_file=''):
+def load_overlay_config(main_env_var,
+                        main_default_file='',
+                        overlay_env_var='',
+                        overlay_file=''):
     configfile = os.environ.get(main_env_var, main_default_file)
     config = None
 
@@ -173,6 +174,7 @@ def read_last_line(fh, offset=256):
 
 # =================================================================
 class BaseLoader(object):
+
     def __init__(self, **kwargs):
         pass
 
@@ -266,6 +268,7 @@ class BlockLoader(BaseLoader):
 
 # =================================================================
 class PackageLoader(BaseLoader):
+
     def load(self, url, offset=0, length=-1):
         if url.startswith('pkg://'):
             url = url[len('pkg://'):]
@@ -292,6 +295,7 @@ class PackageLoader(BaseLoader):
 
 # =================================================================
 class LocalFileLoader(PackageLoader):
+
     def load(self, url, offset=0, length=-1):
         """
         Load a file-like reader from the local file system
@@ -329,6 +333,7 @@ class LocalFileLoader(PackageLoader):
 
 # =================================================================
 class HttpLoader(BaseLoader):
+
     def __init__(self, **kwargs):
         super(HttpLoader, self).__init__()
         self.cookie_maker = kwargs.get('cookie_maker')
@@ -361,6 +366,7 @@ class HttpLoader(BaseLoader):
 
 # =================================================================
 class S3Loader(BaseLoader):
+
     def __init__(self, **kwargs):
         super(S3Loader, self).__init__()
         self.client = None
@@ -398,15 +404,15 @@ class S3Loader(BaseLoader):
                 else:
                     config = None
 
-                client = boto3.client('s3', aws_access_key_id=aws_access_key_id,
-                                      aws_secret_access_key=aws_secret_access_key,
-                                      config=config)
+                client = boto3.client(
+                    's3',
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    config=config)
             else:
                 client = self.client
 
-            res = client.get_object(Bucket=bucket_name,
-                                    Key=key,
-                                    Range=range_)
+            res = client.get_object(Bucket=bucket_name, Key=key, Range=range_)
 
             if not self.client:
                 self.client = client
@@ -441,12 +447,9 @@ class WebHDFSLoader(HttpLoader):
         """
         parts = urlsplit(url)
 
-        http_url = self.HTTP_URL.format(host=parts.netloc,
-                                        path=parts.path)
+        http_url = self.HTTP_URL.format(host=parts.netloc, path=parts.path)
 
-        params = {'op': 'OPEN',
-                  'offset': str(offset)
-                 }
+        params = {'op': 'OPEN', 'offset': str(offset)}
 
         if length > 0:
             params['length'] = str(length)
@@ -465,6 +468,7 @@ class WebHDFSLoader(HttpLoader):
 # =================================================================
 # Signed Cookie-Maker
 # =================================================================
+
 
 class HMACCookieMaker(object):
     """
@@ -486,12 +490,14 @@ class HMACCookieMaker(object):
         else:
             msg = expire
 
-        hmacdigest = hmac.new(self.key.encode('utf-8'), msg.encode('utf-8'), digestmod=hashlib.md5)
+        hmacdigest = hmac.new(self.key.encode('utf-8'),
+                              msg.encode('utf-8'),
+                              digestmod=hashlib.md5)
         hexdigest = hmacdigest.hexdigest()
 
         if extra_id:
-            cookie = '{0}-{1}={2}-{3}'.format(self.name, extra_id,
-                                              expire, hexdigest)
+            cookie = '{0}-{1}={2}-{3}'.format(self.name, extra_id, expire,
+                                              hexdigest)
         else:
             cookie = '{0}={1}-{2}'.format(self.name, expire, hexdigest)
 

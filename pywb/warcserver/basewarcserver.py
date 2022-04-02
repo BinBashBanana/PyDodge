@@ -17,6 +17,7 @@ JSON_CT = 'application/json; charset=utf-8'
 
 #=============================================================================
 class BaseWarcServer(object):
+
     def __init__(self, *args, **kwargs):
         self.route_dict = {}
         self.debug = kwargs.get('debug', False)
@@ -29,7 +30,10 @@ class BaseWarcServer(object):
         self.url_map.add(Rule('/', endpoint=list_routes))
 
     def add_route(self, path, handler, path_param_name='', default_value=''):
-        def direct_input_request(environ, mode='', path_param_value=default_value):
+
+        def direct_input_request(environ,
+                                 mode='',
+                                 path_param_value=default_value):
             params = self.get_query_dict(environ)
             params['mode'] = mode
             if path_param_value:
@@ -49,7 +53,8 @@ class BaseWarcServer(object):
         self.url_map.add(Rule(path + '/<mode>', endpoint=direct_input_request))
 
         self.url_map.add(Rule(path + '/postreq', endpoint=post_fullrequest))
-        self.url_map.add(Rule(path + '/<mode>/postreq', endpoint=post_fullrequest))
+        self.url_map.add(
+            Rule(path + '/<mode>/postreq', endpoint=post_fullrequest))
 
         handler_dict = handler.get_supported_modes()
 
@@ -103,7 +108,8 @@ class BaseWarcServer(object):
                 traceback.print_exc()
             message = 'Internal Error: ' + str(e)
             status = 500
-            return self.send_error({}, start_response,
+            return self.send_error({},
+                                   start_response,
                                    message=message,
                                    status=status)
 
@@ -113,8 +119,11 @@ class BaseWarcServer(object):
         out_headers['Content-Length'] = str(len(res))
         return [res]
 
-    def send_error(self, errs, start_response,
-                   message='No Resource Found', status=404):
+    def send_error(self,
+                   errs,
+                   start_response,
+                   message='No Resource Found',
+                   status=404):
 
         last_exc = errs.pop('last_exc', None)
         if last_exc:

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 r"""
 
 #=================================================================
@@ -433,9 +432,11 @@ import six
 
 ORIGINAL_URL = 'http://example.com/some/path/index.html'
 
+
 def new_rewriter(prefix='/web/', rewrite_opts=dict()):
     PROXY_PATH = '20131226101010/{0}'.format(ORIGINAL_URL)
     return UrlRewriter(PROXY_PATH, prefix, rewrite_opts=rewrite_opts)
+
 
 urlrewriter = new_rewriter(rewrite_opts=dict(punycode_links=False))
 
@@ -444,10 +445,14 @@ full_path_urlrewriter = new_rewriter(prefix='http://localhost:80/web/',
 
 urlrewriter_pencode = new_rewriter(rewrite_opts=dict(punycode_links=True))
 
-no_base_canon_rewriter = new_rewriter(rewrite_opts=dict(rewrite_rel_canon=False,
-                                                        rewrite_base=False))
+no_base_canon_rewriter = new_rewriter(
+    rewrite_opts=dict(rewrite_rel_canon=False, rewrite_base=False))
 
-def parse(data, head_insert=None, urlrewriter=urlrewriter, parse_comments=False,
+
+def parse(data,
+          head_insert=None,
+          urlrewriter=urlrewriter,
+          parse_comments=False,
           js_proxy=False):
 
     if js_proxy:
@@ -455,7 +460,8 @@ def parse(data, head_insert=None, urlrewriter=urlrewriter, parse_comments=False,
     else:
         js_rewriter_class = None
 
-    parser = HTMLRewriter(urlrewriter, head_insert=head_insert,
+    parser = HTMLRewriter(urlrewriter,
+                          head_insert=head_insert,
                           url=ORIGINAL_URL,
                           js_rewriter_class=js_rewriter_class,
                           parse_comments=parse_comments)
@@ -474,6 +480,7 @@ def parse(data, head_insert=None, urlrewriter=urlrewriter, parse_comments=False,
         result = result.decode('utf-8')
 
     print(result)
+
 
 if __name__ == "__main__":
     import doctest

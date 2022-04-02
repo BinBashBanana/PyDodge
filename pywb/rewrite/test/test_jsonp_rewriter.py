@@ -1,13 +1,18 @@
 from pywb.rewrite.jsonp_rewriter import JSONPRewriter
 from pywb.rewrite.url_rewriter import UrlRewriter
 
+
 class TestJSONPRewriter(object):
+
     @classmethod
     def setup_class(cls):
-        urlrewriter = UrlRewriter('20161226/http://example.com/?callback=jQuery_ABC', '/web/', 'https://localhost/web/')
+        urlrewriter = UrlRewriter(
+            '20161226/http://example.com/?callback=jQuery_ABC', '/web/',
+            'https://localhost/web/')
         cls.rewriter = JSONPRewriter(urlrewriter)
 
-        urlrewriter = UrlRewriter('20161226/http://example.com/', '/web/', 'https://localhost/web/')
+        urlrewriter = UrlRewriter('20161226/http://example.com/', '/web/',
+                                  'https://localhost/web/')
         cls.rewriter_missing_cb = JSONPRewriter(urlrewriter)
 
     def test_jsonp_rewrite_1(self):
@@ -44,6 +49,7 @@ class TestJSONPRewriter(object):
         assert self.rewriter.rewrite(string) == expect
 
 # JSONP valid but 'callback=' missing in url tests
+
     def test_no_jsonp_rewrite_missing_callback_1(self):
         """ JSONP valid but callback is missing in url
         """
@@ -58,6 +64,7 @@ class TestJSONPRewriter(object):
 
 
 # Invalid JSONP Tests
+
     def test_no_jsonp_rewrite_1(self):
         string = ' /* comment jQuery_1234({"foo": "bar", "some": "data"})'
         assert self.rewriter.rewrite(string) == string
@@ -79,5 +86,3 @@ class TestJSONPRewriter(object):
  blah = 4;
  jQuery_1234({"foo": "bar", "some": "data"})"""
         assert self.rewriter.rewrite(string) == string
-
-

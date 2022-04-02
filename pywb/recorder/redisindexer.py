@@ -18,13 +18,13 @@ from pywb.recorder.filters import WriteRevisitDupePolicy
 
 #==============================================================================
 class WritableRedisIndexer(RedisIndexSource):
+
     def __init__(self, *args, **kwargs):
         redis_url = kwargs.get('redis_url')
         redis = kwargs.get('redis')
         cdx_key_template = kwargs.get('cdx_key_template')
 
-        super(WritableRedisIndexer, self).__init__(redis_url,
-                                                   redis,
+        super(WritableRedisIndexer, self).__init__(redis_url, redis,
                                                    cdx_key_template)
 
         name = kwargs.get('name', 'recorder')
@@ -62,8 +62,11 @@ class WritableRedisIndexer(RedisIndexSource):
         base_filename = self._get_rel_or_base_name(filename, params)
 
         cdxout = BytesIO()
-        write_cdx_index(cdxout, stream, base_filename,
-                        cdxj=True, append_post=True,
+        write_cdx_index(cdxout,
+                        stream,
+                        base_filename,
+                        cdxj=True,
+                        append_post=True,
                         writer_cls=params.get('writer_cls'))
 
         z_key = res_template(self.redis_key_template, params)
@@ -106,6 +109,7 @@ class WritableRedisIndexer(RedisIndexSource):
 
 # ============================================================================
 class RedisPendingCounterTempBuffer(tempfile.SpooledTemporaryFile):
+
     def __init__(self, max_size, redis_url, params, name, timeout=30):
         redis_url = res_template(redis_url, params)
         super(RedisPendingCounterTempBuffer, self).__init__(max_size=max_size)
@@ -127,4 +131,3 @@ class RedisPendingCounterTempBuffer(tempfile.SpooledTemporaryFile):
 
         self.redis.incrby(self.key, -1)
         self.redis.expire(self.key, self.timeout)
-

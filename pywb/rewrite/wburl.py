@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 """
 WbUrl represents the standard wayback archival url format.
 A regular url is a subset of the WbUrl (latest replay).
@@ -57,8 +56,12 @@ class BaseWbUrl(object):
     REPLAY = 'replay'
     LATEST_REPLAY = 'latest_replay'
 
-    def __init__(self, url='', mod='',
-                 timestamp='', end_timestamp='', type=None):
+    def __init__(self,
+                 url='',
+                 mod='',
+                 timestamp='',
+                 end_timestamp='',
+                 type=None):
 
         self.url = url
         self.timestamp = timestamp
@@ -80,13 +83,11 @@ class BaseWbUrl(object):
 
     @staticmethod
     def is_replay_type(type_):
-        return (type_ == BaseWbUrl.REPLAY or
-                type_ == BaseWbUrl.LATEST_REPLAY)
+        return (type_ == BaseWbUrl.REPLAY or type_ == BaseWbUrl.LATEST_REPLAY)
 
     @staticmethod
     def is_query_type(type_):
-        return (type_ == BaseWbUrl.QUERY or
-                type_ == BaseWbUrl.URL_QUERY)
+        return (type_ == BaseWbUrl.QUERY or type_ == BaseWbUrl.URL_QUERY)
 
 
 #=================================================================
@@ -102,7 +103,6 @@ class WbUrl(BaseWbUrl):
     FIRST_PATH = re.compile('(?<![:/])[/?](?![/])')
 
     SCHEME_RX = re.compile('[a-zA-Z0-9+-.]+(:/)')
-
 
     @staticmethod
     def percent_encode_host(url):
@@ -125,10 +125,9 @@ class WbUrl(BaseWbUrl):
             # likely already encoded, so use as is
             pass
 
-        domain = quote(domain)#, safe=r':\/')
+        domain = quote(domain)  #, safe=r':\/')
 
         return urlunsplit((parts[0], domain, parts[2], parts[3], parts[4]))
-
 
     @staticmethod
     def to_uri(url):
@@ -212,7 +211,7 @@ class WbUrl(BaseWbUrl):
             inx = m.span(1)[0]
 
         #if inx < 0:
-            # check for other partially encoded variants
+        # check for other partially encoded variants
         #    m = self.PARTIAL_ENC_RX.match(self.url)
         #    if m:
         #        len_ = len(m.group(0))
@@ -282,7 +281,8 @@ class WbUrl(BaseWbUrl):
         rex_query = '=' + re.escape(prefix) + '([0-9])*([\w]{2}_)?/?'
         self.url = re.sub(rex_query, '=', self.url)
 
-        rex_query = '=(' + quote_plus(prefix) + '.*?)((?:https?%3A)?%2F%2F[^&]+)'
+        rex_query = '=(' + quote_plus(
+            prefix) + '.*?)((?:https?%3A)?%2F%2F[^&]+)'
         self.url = re.sub(rex_query, '=\\2', self.url)
 
         return self.url
@@ -297,7 +297,6 @@ class WbUrl(BaseWbUrl):
             url = WbUrl.percent_encode_host(url)
 
         return url
-
 
     # Str Representation
     # ====================
@@ -316,8 +315,11 @@ class WbUrl(BaseWbUrl):
                                  end_timestamp=end_timestamp)
 
     @staticmethod
-    def to_wburl_str(url, type=BaseWbUrl.LATEST_REPLAY,
-                     mod='', timestamp='', end_timestamp=''):
+    def to_wburl_str(url,
+                     type=BaseWbUrl.LATEST_REPLAY,
+                     mod='',
+                     timestamp='',
+                     end_timestamp=''):
 
         if WbUrl.is_query_type(type):
             tsmod = ''
@@ -341,8 +343,7 @@ class WbUrl(BaseWbUrl):
 
     @property
     def is_embed(self):
-        return (self.mod and
-                self.mod not in ('id_', 'mp_', 'tf_', 'bn_'))
+        return (self.mod and self.mod not in ('id_', 'mp_', 'tf_', 'bn_'))
 
     @property
     def is_banner_only(self):
