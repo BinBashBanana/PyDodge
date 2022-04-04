@@ -34,3 +34,9 @@ Port is configurable in run.sh
 Ilya Kreymer and the webrecorder team.
 
 PYWB version: release 2.6.3
+
+[PYWB](https://github.com/webrecorder/pywb)
+
+# Alternatives
+
+Consider using an alternative such as [Ultraviolet](https://github.com/titaniumnetwork-dev/Ultraviolet) which offers greater support than PyDodge.
